@@ -34,7 +34,7 @@ const routes = [{
 			name: 'AddFood',
 			path: 'addfood',
 			meta: {
-				title: '添加菜品'
+				title: '点菜下单'
 			},
 			component: require('../views/order/AddFood.vue')
 		}, {
@@ -60,6 +60,14 @@ const routes = [{
 			title: '订单详情'
 		},
 		component: require('../views/order/Detail.vue')
+	},
+	{
+		name: 'OrderAdd',
+		path: '/order/view/detail/:orderNo/add',
+		meta: {
+			title: '添加菜品'
+		},
+		component: require('../views/order/Add.vue')
 	},
 	// 菜品管理
 	{

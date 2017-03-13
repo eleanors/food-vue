@@ -16,7 +16,7 @@
                                 </ui-date-picker>
                         </div>
 
-                        <div class="edit">
+                        <div class="edit" v-if="status!==4">
                                 <span class="modify" v-show="!isShowDate" v-on:click="modify('date')">修改</span>
                                 <span class="save" v-if="isShowDate" v-on:click="save('date')">保存</span>
                                 <span class="cancel" v-if="isShowDate" v-on:click="cancel('date')">取消</span>
@@ -28,7 +28,7 @@
                         <div class="content">
                             <span v-text="dinnercount"></span>
                             <input type="text" class="control" v-model="dinnercount" v-if="isShowCount"></div>
-                            <div class="edit">
+                            <div class="edit" v-if="status!==4">
                                     <span class="modify" v-show="!isShowCount" v-on:click="modify('count')">修改</span>
                                     <span class="save" v-if="isShowCount" v-on:click="save('count')">保存</span>
                                     <span class="cancel" v-if="isShowCount" v-on:click="cancel('count')">取消</span>
@@ -41,7 +41,7 @@
                             <span v-text="customertel"></span>
                             <input class="control" type="text" v-model="customertel" v-if="isShowPhone">
                         </div>
-                        <div class="edit">
+                        <div class="edit" v-if="status!==4">
                                 <span class="modify" v-show="!isShowPhone" v-on:click="modify('phone')">修改</span>
                                 <span class="save" v-if="isShowPhone" v-on:click="save('phone')">保存</span>
                                 <span class="cancel" v-if="isShowPhone" v-on:click="cancel('phone')">取消</span>
@@ -56,7 +56,7 @@
                                     <ui-option v-for="(item, index) in dinnerNumOptions" :label="item.label" :value="item.value" :key="index"></ui-option>
                             </ui-select>
                         </div>
-                        <div class="edit">
+                        <div class="edit" v-if="status!==4">
                                 <span class="modify" v-show="!isShowTableNo" v-on:click="modify('number')">修改</span>
                                 <span class="save" v-if="isShowTableNo" v-on:click="save('number')">保存</span>
                                 <span class="cancel" v-if="isShowTableNo" v-on:click="cancel('number')">取消</span>
@@ -73,7 +73,7 @@
                           <ui-col :span="4" v-text="food.itemTitle"></ui-col>
                           <ui-col :span="4" v-text="food.quantity"></ui-col>
                           <ui-col :span="4" v-text="food.price"></ui-col>
-                          <ui-col :span="12" v-on:click.native="retreatFood(food)">退菜</ui-col>
+                          <ui-col :span="12" v-on:click.native="retreatFood(food)" v-if="status!==4">退菜</ui-col>
                     </ui-row>
                 </div>
                 <div class="remark">
@@ -84,7 +84,7 @@
                                 <p class="remark-content" v-text="remark" v-show="!isShowRemark"></p>
                                 <ui-input class="remark-content" type="textarea" :rows="4" placeholder="请输入内容" v-model="remark" v-if="isShowRemark"></ui-input>
                           </ui-col>
-                          <ui-col :span="16" class="edit fs-14">
+                          <ui-col :span="16" class="edit fs-14" v-if="status!==4">
                                 <span class="modify" v-show="!isShowRemark" v-on:click="modify('remark')">修改</span>
                                 <span class="save" v-if="isShowRemark" v-on:click="save('remark')">保存</span>
                                 <span class="cancel" v-if="isShowRemark" v-on:click="save('remark')">取消</span>
@@ -95,6 +95,10 @@
                 <div class="payment">支付方式：{{payment | paymentFilter(payment)}}</div>
         </div>
 
+        <div class="add-order">
+
+                    <router-link class="btn add-food fs-16" v-bind:to="{ name: 'OrderAdd', params:{orderNo: orderId}}">加菜</router-link>
+        </div>
 
         <ui-dialog title="正在编辑" v-model="isDialogVisible" size="tiny" top="30%">
               <div class="modal-content">
@@ -120,6 +124,10 @@ export default {
 
         data: function(){
             return {
+                // 订单状态
+                status: '',
+                orderId: '',
+
                 createtime: '',
                 limittime: '',
                 dinnercount: '',
@@ -193,6 +201,7 @@ export default {
 
             let params = this.$route.params
             this.orderId = params.id
+            this.status = params.status
 
             xhr({
                 url: order.getOrderInfomation,
@@ -553,6 +562,7 @@ export default {
             }
             .remark {
                     line-height: 50px;
+                    resize: none;
                     .edit {
                            padding-left: 0;
                     }
@@ -577,6 +587,16 @@ export default {
             .payment {
                     line-height: 50px;
 
+            }
+
+            .add-order {
+                    margin-top: 20px;
+                    text-align: center;
+
+                    .add-food {
+                            padding: 12px 24px;
+                            color: #fff;
+                    }
             }
     }
 

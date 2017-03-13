@@ -7,7 +7,7 @@ const pannel = [{
             title: '查看订单',
             link: '/order/view'
        },{
-            title: '添加菜品',
+            title: '点菜下单',
             link: '/order/addfood'
        },{
             title: '订单验证',

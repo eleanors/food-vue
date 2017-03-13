@@ -5,39 +5,6 @@
                 <view-search v-on:search="searchHandle"></view-search>
 
                 <!-- 订单数据 -->
-                <!--ui-table :data="tableDataComputed" style="width: 100%" v-on:selection-change="handleSelectionChange">
-
-                    <ui-table-column width="55">
-
-                            <template scope="scope" v-if="scope.row.status==2">
-                                    <span class="check-icon check-selected"></span>
-                            </template>
-                    </ui-table-column>
-
-                    <ui-table-column label="订单编号">
-
-                            <template scope="scope">
-                                   <router-link :to="{name: 'OrderDetail', params:{orderNo:scope.row.orderNo}}">{{ scope.row.orderNo }}</router-link>
-                            </template>
-                    </ui-table-column>
-
-                    <ui-table-column label="下单时间">
-                           <template scope="scope">{{ scope.row.date }}</template>
-                    </ui-table-column>
-
-                    <ui-table-column prop="phone" label="顾客手机"></ui-table-column>
-
-                    <ui-table-column prop="status" label="订单状态"></ui-table-column>
-
-                    <ui-table-column label="操作">
-
-                             <template scope="scope">
-                                   <ui-button type="text">撤单</ui-button>
-                                   <ui-button type="text">退单</ui-button>
-                            </template>
-                    </ui-table-column>
-                </ui-table-->
-
                 <div class="view-content">
                     <transition name="slide-fade">
                     <div class="combine-operate" v-show="selectedCheck.length>0">
@@ -76,7 +43,9 @@
                                             </div>
                                     </div>
                                     <div class="column">
-                                            <div class="cell"><router-link  v-bind:to="{name: 'OrderDetail', params:{orderNo:item.orderNo}}" v-text="item.orderNo"></router-link></div>
+                                            <div class="cell">
+                                                <router-link  v-bind:to="{name: 'OrderDetail', params:{orderNo:item.orderNo, status: item.status}}" v-text="item.orderNo"></router-link>
+                                            </div>
                                     </div>
                                     <div class="column">
                                             <div class="cell" v-text="">{{item.status | statusFilter}}</div>
