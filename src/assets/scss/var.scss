@@ -1,0 +1,54 @@
+/** size */
+
+$max-width: 1200px;
+
+
+/**  color  **/
+$c-master: #2db165;
+
+$c-lesser: #fbba00;
+
+$c-minor: #2a2f33;
+
+
+
+
+
+$text-color: #666666;
+
+$border-color: #e2e2e2;
+
+
+/*  链接文本  */
+$link-color: $text-color;
+
+$link-hover-color: $c-lesser;
+
+$link-active-color: $c-lesser;
+
+$cursor-disabled: not-allowed;
+
+/*  body 背景 */
+$body-background: #e8e8e8;
+
+
+$font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+
+$font-size-small: 14px;
+
+$line-height-base: 1.5;
+
+
+/*  左侧Pannel (back->background) **/
+
+$menu-font-color: #fff;
+
+$menu-font-size: 18px;
+
+$menu-item-font-size: 16px;
+
+$menu-pannel-back-color: #2a2f33;
+
+$menu-pannel-actived-color: $c-lesser;
+
+$menu-pannel-item-back-color: #22272b;

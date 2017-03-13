@@ -1,0 +1,85 @@
+/*** fontSize***/
+
+.fs-12 {
+    font-size: 12px;
+}
+
+.fs-14 {
+    font-size: 14px;
+}
+
+.fs-16 {
+    font-size: 16px;
+}
+
+.fs-18 {
+    font-size: 18px;
+}
+
+.fs-20 {
+    font-size: 20px;
+}
+
+.fs-24 {
+    font-size: 24px;
+}
+
+
+
+/*** textAlign ***/
+
+.t-l {
+    text-align: left;
+}
+
+.t-r {
+    text-align: right;
+}
+.t-c {
+    text-align: center;
+}
+
+
+/*** float ***/
+
+.f-l {
+    float: left;
+}
+
+.f-r {
+    float: right;
+}
+
+/*** background ***/
+.bg-center{
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+}
+
+
+/*** vertical-align ***/
+.va-t {
+    vertical-align: top
+}
+.va-m {
+    vertical-align: middle
+}
+.va-tb{
+    vertical-align: text-bottom
+}
+
+
+
+.h-full {
+     height: 100%;
+     overflow: hidden;
+}
+
+
+.ellipsis {
+    white-space: nowrap;
+    word-break: break-word;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}

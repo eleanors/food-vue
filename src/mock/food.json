@@ -1,0 +1,126 @@
+{
+    "body":{
+        "foodList": [{
+                "id": "'1",
+                "label": "锅底",
+                "cate": [{
+                    "title": "AAA",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "AAA",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "AAA",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "AAA",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                }]
+            },{
+                "id": "'2",
+                "label": "料碗",
+                "cate": [{
+                    "title": "BBB",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "BBB",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "BBB",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "BBB",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                }]
+            },{
+                "id": "'3",
+                "label": "肉类",
+                "cate": [{
+                    "title": "CCC",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "CCC",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "CCC",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "CCC",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                }]
+            },{
+                "id": "'4",
+                "label": "海鲜",
+                "cate": [{
+                    "title": "DDD",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "DDD",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "DDD",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                },{
+                    "title": "DDD",
+                    "originprice": "366",
+                    "currentprice": "288",
+                    "total": "4",
+                    "pic": "static/01.png"
+                }]
+            },]
+
+    },
+
+    "header":{
+           "statusCode":"1",
+           "errorMsg":{
+                 "errorDesc":null,
+                 "errorCode":null
+           }
+    }
+}

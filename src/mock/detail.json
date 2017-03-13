@@ -1,0 +1,20 @@
+{
+"id": "aeces006",
+"phone": 15654852564,
+"number": "AX006",
+"ordertime": 1484988360,
+"limittime": 1484998360,
+"dinenumber": 40,
+"foods": [{
+      "id": 10001,
+      "name": "红烧肉",
+      "count": 4,
+      "price": 64
+},{
+      "id": 10002,
+      "name": "土豆丝",
+      "count": 6,
+      "price": 24
+}],
+"status": 0
+}

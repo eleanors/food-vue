@@ -1,0 +1,16 @@
+{
+  "id": 1,
+  "peopleSum":2-4,
+  "foods": [{
+    "id": 10001,
+    "name": "红烧肉",
+    "price": 64
+  },{
+    "id": 10002,
+    "name": "土豆丝",
+    "price": 24
+  }],
+  "totalPrice":88,
+  "packageStatus":1,
+  "status": 0
+}
