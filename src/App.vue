@@ -1,39 +1,21 @@
 <template>
-  <div class="wrapper">
-        <layout-pannel v-bind:menus="pannel"></layout-pannel>
-
-        <div class="main-content">
-            <layout-header></layout-header>
-            <layout-main></layout-main>
-            <!--<layout-footer></layout-footer>-->
-            <!-- <ui-button type="primary"  @click="dialogVisible = true">主要按钮</ui-button>
-
-            <ui-dialog title="提示" v-model="dialogVisible" size="tiny">
-                  <span>这是一段信息</span>
-                  <span slot="footer" class="dialog-footer">
-                        <ui-button @click="dialogVisible = false">取 消</ui-button>
-                        <ui-button type="primary" @click="dialogVisible = false">确 定</ui-button>
-                  </span>
-            </ui-dialog> -->
-        </div>
-
-  </div>
+    <router-view></router-view>
 </template>
 
 <script>
-import pannel from './vendor/pannel'
-import LayoutMain   from 'components/layout/LayoutMain'
-import LayoutPannel from 'components/layout/LayoutPannel'
-import LayoutHeader from 'components/layout/LayoutHeader'
-import LayoutFooter from 'components/layout/LayoutFooter'
+
+import {getCookie} from 'vendor/utils'
 
 export default {
 
          data: function(){
-                 return {
-                      pannel,
-                      dialogVisible: false
-                 }
+                return {}
+         },
+
+         created: function(){
+                if(!getCookie('session')){
+                        this.$router.push({name: 'Auth'})
+                }
          },
 
          mounted: function(){
@@ -44,12 +26,7 @@ export default {
 
          },
 
-         components: {
-                LayoutHeader,
-                LayoutPannel,
-                LayoutMain,
-                LayoutFooter
-         }
+         components: {}
 }
 </script>
 
@@ -58,6 +35,7 @@ export default {
     @import '~assets/scss/var';
     html, body {
         height: 100%;
+        overflow: hidden;
         background: $body-background;
     }
     .wrapper {

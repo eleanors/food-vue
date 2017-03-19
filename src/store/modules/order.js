@@ -2,10 +2,11 @@ import {setStore, getStore} from 'vendor/utils'
 import * as types from '../type.js'
 
 const state = {
-
+        // 添加菜品
         miniFood: {},
         foodCount: null,
-        foodListCount: null
+
+        orderDetail: null
 }
 
 
@@ -18,7 +19,6 @@ const getters = {
     foodCount: state => state.foodCount,
 
     miniFood: state => state.miniFood
-
 }
 
 
@@ -29,13 +29,13 @@ const actions = {
         commit(types.MINIFOOD_INIT_FOOD)
     },
 
-    addFood({commit}, {shopId, cateId, food}){
+    addFood({commit}, {shopId, cateId, foodId, food}){
 
-        commit(types.MINIFOOD_ADD_FOOD, {shopId, cateId, food})
+        commit(types.MINIFOOD_ADD_FOOD, {shopId, cateId, foodId, food})
     },
 
-    reduceFood({commit}, {shopId, cateId, food}){
-        commit(types.MINIFOOD_REDUCE_FOOD, {shopId, cateId, food})
+    reduceFood({commit}, {shopId, cateId, foodId, food}){
+        commit(types.MINIFOOD_REDUCE_FOOD, {shopId, cateId, foodId, food})
     },
 
     clearFood({commit}, shopId){
@@ -46,6 +46,10 @@ const actions = {
         commit(types.CALC_MINIFOOD_QUANTITY, shopId)
     }
 }
+
+/*
+{shopId-1: {cateA: {itemId-1: {}itemId-2: {}},cateB: {itemId-1: {}itemId-2: {}}}}
+*/
 
 const mutations = {
 
@@ -58,32 +62,39 @@ const mutations = {
             }
     },
 
-    [types.MINIFOOD_ADD_FOOD](state, {shopId, cateId, food}) {
+    [types.MINIFOOD_ADD_FOOD](state, {shopId, cateId, foodId, food}) {
         let foodCollect = state.miniFood
+
         if( state.miniFood[shopId] ) {
-                let cateIndex = []
-                let cateList = state.miniFood[shopId][cateId]
-
-
-                if(cateList && cateList.length){
-                        cateList.forEach( (item, index) => {
-                                if(cateList.indexOf(food)>-1) {
-                                        if(item.id == food.id) item.quantity++
-                                }else{
-                                        food.quantity++
-                                        cateList.push(food)
-                                }
-                        })
-                }else {
-                        state.miniFood[shopId][cateId] = []
-                        food.quantity++
-                        state.miniFood[shopId][cateId].push(food)
-                }
+                    // 所有分类
+                    let cateList = state.miniFood[shopId]
+                    if(cateList.hasOwnProperty(cateId)){
+                            let itemList = cateList[cateId]
+                            if(itemList.hasOwnProperty(foodId)){
+                                    itemList[foodId].quantity++
+                            }else{
+                                    food.quantity++
+                                    itemList[foodId] = {}
+                                    for(let attr in food){
+                                        itemList[foodId][attr] = food[attr]
+                                    }
+                            }
+                    }else{
+                            food.quantity++
+                            cateList[cateId] = {}
+                            cateList[cateId][foodId] = {}
+                            for(let attr in food){
+                                cateList[cateId][foodId][attr] = food[attr]
+                            }
+                    }
         }else {
-                state.miniFood[shopId] = {}
-                state.miniFood[shopId][cateId] = []
                 food.quantity++
-                state.miniFood[shopId][cateId].push(food)
+                state.miniFood[shopId] = {}
+                state.miniFood[shopId][cateId] = {}
+                state.miniFood[shopId][cateId][foodId] = {}
+                for(let attr in food){
+                    state.miniFood[shopId][cateId][foodId][attr] = food[attr]
+                }
         }
 
         state.miniFood = Object.assign({}, foodCollect);
@@ -91,37 +102,30 @@ const mutations = {
         setStore('miniFoodStore', state.miniFood)
     },
 
-    [types.MINIFOOD_REDUCE_FOOD](state, {shopId, cateId, food}) {
+    [types.MINIFOOD_REDUCE_FOOD](state, {shopId, cateId, foodId, food}) {
         let foodCollect = state.miniFood
-        if( state.miniFood[shopId] && state.miniFood[shopId][cateId]) {
-                let cateList = state.miniFood[shopId][cateId]
-                if(cateList && cateList.length){
+        let cateList = state.miniFood[shopId]
 
-                        cateList.forEach( (item, index) => {
+        if( cateList && cateList[cateId] && cateList[cateId][foodId]) {
+                if( cateList[cateId][foodId].quantity>0){
 
-                                if(cateList.indexOf(food)>-1) {
-                                        if(item.id == food.id) item.quantity--
-                                }
-                                if(item.quantity === 0){
-                                        cateList.splice(index, 1)
-                                }
-                        })
+                        cateList[cateId][foodId].quantity--
+                        state.miniFood = Object.assign({}, foodCollect);
+                        setStore('miniFoodStore', state.miniFood)
+                }else{
+                        cateList[cateId][foodId].quantity = 0
                 }
         }
-        state.miniFood = Object.assign({}, foodCollect);
-
-        setStore('miniFoodStore', state.miniFood)
     },
 
     [types.MINIFOOD_CLEAR_FOOD](state, shopId){
             if( shopId && state.miniFood[shopId]) {
-                    Object.keys(state.miniFood[shopId]).forEach( (cateId, index)=> {
-                            let cateList = state.miniFood[shopId][cateId]
-                            if(cateList && cateList.length){
-                                    cateList.forEach( (food)=> {
-                                            food.quantity = 0
-                                    })
-                            }
+
+                    Object.values(state.miniFood[shopId]).forEach( (cate)=>{
+
+                            Object.values(cate).forEach( (item)=>{
+                                    item.quantity = 0
+                            })
                     })
             }
             state.miniFood[shopId] = {}
@@ -131,16 +135,12 @@ const mutations = {
     [types.CALC_MINIFOOD_QUANTITY](state, shopId){
         if( shopId && state.miniFood[shopId]) {
                 let quantity = 0
-                for(let cate in state.miniFood[shopId]){
+                Object.values(state.miniFood[shopId]).forEach( (cate)=>{
 
-                        let cateList = state.miniFood[shopId][cate]
-                        if(cateList.constructor == Array && cateList.length){
-                                for(let i=0; i<cateList.length; i++){
-
-                                        quantity += cateList[i].quantity
-                                }
-                        }
-                }
+                        Object.values(cate).forEach( (item)=>{
+                                quantity += item.quantity
+                        })
+                })
                 state.foodCount = quantity;
         }else {
                 state.foodCount = 0;

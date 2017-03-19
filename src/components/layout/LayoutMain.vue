@@ -1,5 +1,5 @@
 <template>
-          <transition mode="out-in" enter-active-class="fadeInUp" leave-active-class="fadeInUp">
+          <transition mode="out-in" enter-active-class="fadeInUp" leave-active-class="">
 
                   <router-view class="container animated"></router-view>
           </transition>
@@ -14,8 +14,8 @@ export default {
 <style lang="scss">
 
 .animated {
-      -webkit-animation-duration: .5s;
-      animation-duration: .5s;
+      -webkit-animation-duration: .3s;
+      animation-duration: .3s;
       -webkit-animation-fill-mode: both;
       animation-fill-mode: both;
 }
@@ -42,8 +42,8 @@ export default {
 
 @-webkit-keyframes fadeInUp {
       from {
-            -webkit-transform: translate3d(0, 10%, 0);
-            transform: translate3d(0, 10%, 0);
+            -webkit-transform: translate3d(0, 5%, 0);
+            transform: translate3d(0, 5%, 0);
             opacity: .4;
       }
 
@@ -60,6 +60,8 @@ export default {
 }
 
 .container {
+     width: 100%;
+     min-width: 1300px;
      padding: 20px 20px;
      height: 90%;
      overflow: hidden;

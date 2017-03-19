@@ -1,5 +1,5 @@
 <template>
-	<div class="list">
+	<div class="meal-list">
 		<!-- 菜品列表 -->
 		<ui-table :data="shopItems" style="width: 100%">
 			<ui-table-column label="图片" align="center">
@@ -16,7 +16,19 @@
 
 			<ui-table-column prop="price" label="售价" align="center"></ui-table-column>
 
-			<ui-table-column label="促销方式" align="center">
+			<ui-table-column label="推荐" align="center">
+				<template scope="scope">
+					<div v-if="scope.row.isRecommend=='0'">
+						未推荐
+					</div>
+					<div v-else-if="scope.row.isRecommend == '1'">
+						推荐
+					</div>
+				</template>
+			</ui-table-column>
+			
+			<!--一期不上-->
+			<!--<ui-table-column label="促销方式" align="center">
 				<template scope="scope">
 					<div v-if="scope.row.promType=='0'">
 						不参与促销
@@ -28,11 +40,10 @@
 						优惠
 					</div>
 				</template>
-			</ui-table-column>
+			</ui-table-column>-->
 
-			<ui-table-column label="推荐" align="center"></ui-table-column>
 
-			<ui-table-column label="状态" align="center">
+			<!--<ui-table-column label="状态" align="center">
 				<template scope="scope">
 					<div v-if="scope.row.status=='1'">
 						上架
@@ -41,19 +52,19 @@
 						下架
 					</div>
 				</template>
-			</ui-table-column>
+			</ui-table-column>-->
 
-			<ui-table-column label="操作" align="center">
+			<ui-table-column label="操作" class="operate-label">
 				<template scope="scope">
-					<ui-button type="text" v-on:click="editMeal(scope.row.id)">编辑</ui-button>
-					<ui-button type="text" v-on:click="delMeal(scope.row.id)">删除</ui-button>
+					<ui-button type="text" v-on:click="editMeal(scope.row.id)" class="operate-edit">编辑</ui-button>
+					<ui-button type="text" v-on:click="delMeal(scope.row.id)" class="operate-del">删除</ui-button>
 				</template>
 			</ui-table-column>
 		</ui-table>
 
 		<!-- 分页 -->
 		<div class="pagination">
-			<ui-pagination v-on:size-change="handleSizeChange" v-on:current-change="handleCurrentChange" :current-page="currentPage" :page-size="10" layout="total, prev, pager, next, jumper" :total="100">
+			<ui-pagination v-on:current-change="handleCurrentChange" :current-page="currentPage" :page-size="10" layout="total, prev, pager, next, jumper" :total="totalCount">
 			</ui-pagination>
 		</div>
 	</div>
@@ -67,22 +78,17 @@
 	export default {
 		data: function() {
 			return {
-				currentPage: 1
+
 			}
 		},
 
 		//菜品列表数据
-		props: ['shopItems'],
+		props: ['shopItems', 'currentPage', 'totalCount'],
 
 		methods: {
 			//控制分页
-			handleSizeChange: function(val) {
-
-			},
-
-			handleCurrentChange: function(val) {
-				this.currentPage = val;
-				//console.log(val);
+			handleCurrentChange: function(currentPage) {
+				this.$emit('pageTrans', currentPage);
 			},
 
 			//给 Meal 传递编辑菜品id
@@ -99,13 +105,22 @@
 </script>
 
 <style lang="scss">
-	.icon-img {
-		/*width: 60px;*/
-		height: 60px;
-	}
-	
-	.pagination {
-		text-align: center;
-		margin-top: 30px;
+	.meal-list {
+		.icon-img {
+			/*width: 60px;*/
+			height: 60px;
+		}
+		.operate-edit {
+			position:absolute;
+			left: 0;
+			top:50%;
+			transform: translateY(-50%);
+		}
+		.operate-del {
+			position:absolute;
+			right: 30px;
+			top:50%;
+			transform: translateY(-50%);
+		}
 	}
 </style>

@@ -3,7 +3,7 @@
          <div class="buying-record">
 
                 <!-- 订单数据 -->
-                <ui-table class="" v-bind:data="recordList"  style="width: 100%" v-on:selection-change="handleSelectionChange">
+                <ui-table class="record-table" v-bind:data="recordList" v-loading="loading" element-loading-text='拼命加载中...'>
 
                     <ui-table-column label="日期">
 
@@ -47,54 +47,22 @@
 </template>
 
 <script>
-import viewSearch from './part/Search'
 import xhr from 'service'
 import {order} from 'service/api'
+import { mapGetters } from 'vuex'
+
 export default {
         data() {
                 return {
-                        recordList: [{
-
-                            date: '2017-02-01',
-                            avator: 'static/01.png',
-                            nick: '夏雨',
-                            tel: '145658558',
-                            payment: '68',
-                            remark: '抢购成功后凭手机号码就能以68元超低价, 海鲜双人',
-                            status: '未使用'
-                        },{
-
-                            date: '2017-02-01',
-                            avator: 'static/01.png',
-                            nick: '夏雨',
-                            tel: '145658558',
-                            payment: '68',
-                            remark: '抢购成功后凭手机号码就能以68元超低价, 海鲜双人',
-                            status: '未使用'
-                        },{
-
-                            date: '2017-02-01',
-                            avator: 'static/01.png',
-                            nick: '夏雨',
-                            tel: '145658558',
-                            payment: '68',
-                            remark: '抢购成功后凭手机号码就能以68元超低价, 海鲜双人',
-                            status: '未使用'
-                        },{
-
-                            date: '2017-02-01',
-                            avator: 'static/01.png',
-                            nick: '夏雨',
-                            tel: '145658558',
-                            payment: '68',
-                            remark: '抢购成功后凭手机号码就能以68元超低价, 海鲜双人',
-                            status: '未使用'
-                        }],
-                        multipleSelection: [],
-                        currentPage: 1,
+                        recordList: [],
                         pageInfo: {},
-                        currentPage: 1
+                        currentPage: 1,
+                        loading: true
                 }
+        },
+
+        computed: {
+                ...mapGetters(['session', 'shopId'])
         },
 
         watch: {
@@ -104,15 +72,14 @@ export default {
                 }
         },
 
-        methods: {
+        created: function(){
+                this.getRecordData()
+        },
 
-                handleSelectionChange(val) {
-                        this.multipleSelection = val;
-                },
+        methods: {
 
                 handleCurrentChange(val) {
                     this.currentPage = val;
-                    //console.log(val);
                 },
 
                 getRecordData: function(){
@@ -124,37 +91,33 @@ export default {
                                         createDateEnd: '',
                                         createDateStart: '',
                                         currentPage: this.currentPage,
-                                        operateOfOrder: '',
-                                        shopId: 13,
-                                        tel: ''
+                                        tel: '',
+                                        shopId: this.shopId,
+                                        session: this.session
                                 }
                         }).then( response => {
-                                let recordList = response.queryOrderRecordList
+                                let buyUserList = [];
+                                let recordList = response.shopLimitedBuyUserList
                                 if(recordList && recordList.length) {
-                                        recordList.forEach( (item, index)=> {
+                                       recordList.forEach( (item, index)=> {
 
-                                                this.recordList.push({
-                                                        orderNo: item.orderNo||'aaace5',
+                                                buyUserList.push({
                                                         tel: item.tel,
-                                                        dateTime: item.dateTime,
+                                                        dateTime: item.createDate,
                                                         status: item.status,
-                                                        orderReamark: item.orderReamark
+                                                        orderReamark: item.directions,
+                                                        avator: item.picUrl,
+                                                        nick: item.nickname,
+                                                        payment: item.payment
                                                 })
                                         })
                                 }
+
+                                this.recordList = buyUserList;
                                 this.pageInfo = response.pageInfo;
+                                this.loading = false;
                         })
                 }
-        },
-
-
-        created: function(){
-                // 初始化数据
-                //this.getRecordData()
-        },
-
-        components: {
-            viewSearch
         }
 }
 </script>
@@ -162,7 +125,10 @@ export default {
 <style lang="scss">
 @import '~scss/var.scss';
 .buying-record {
-
+        .record-table {
+            width: 100%;
+            min-height: 90%;
+        }
         img {
             max-width: 80px;
             vertical-align: middle;

@@ -1,10 +1,10 @@
 <template>
-	<div class="view-add">
+	<div class="meal-add">
 		<ui-dialog title="添加菜品" v-model="dialogAdd">
-			<ui-form>
-				<ui-form-item label="上传菜品缩略图" :label-width="formLabelWidth">
-					<ui-upload class="avatar-uploader" action="//jsonplaceholder.typicode.com/posts/" :show-file-list="false" :on-success="handleAvatarScucess" :before-upload="beforeAvatarUpload">
-						<img v-if="reqAdd.icon" :src="reqAdd.icon" class="avatar">
+			<ui-form :model="reqAdd" :rules="rules">
+				<ui-form-item label="上传菜品缩略图" :label-width="formLabelWidth" class="pic-item">
+					<ui-upload class="avatar-uploader" action="https://test.meia8.com/api-shop/" :show-file-list="false" :before-upload="beforeAvatarUpload">
+						<img v-if="isIcon" :src="reqAdd.icon" class="avatar">
 						<i v-else class="el-icon-plus avatar-uploader-icon"></i>
 					</ui-upload>
 					<span class="icon-prompt">注：150px*150px，文件大小80kb，文件格式JPG、JPEG、PNG</span>
@@ -14,24 +14,16 @@
 					<ui-input v-model="reqAdd.title" auto-complete="off"></ui-input>
 				</ui-form-item>
 
-				<ui-form-item label="菜品类型" :label-width="formLabelWidth" class="item-inline">
+				<ui-form-item label="菜品类别" :label-width="formLabelWidth" class="item-inline">
 					<ui-select v-model="reqAdd.categoryId" placeholder="请选择菜品类别">
 						<ui-option v-for="(item, index) in shopCategorys" :label="item.categoryTitle" :value="item.categoryId" :key="index"></ui-option>
 					</ui-select>
 				</ui-form-item>
 
 				<ui-form-item label="辣度" :label-width="formLabelWidth" class="item-inline">
-					<ui-select v-model="reqAdd.categoryId" placeholder="请选择辣度">
-						<ui-option v-for="(item, index) in shopCategorys" :label="item.categoryTitle" :value="item.categoryId" :key="index"></ui-option>
+					<ui-select v-model="reqAdd.pepperLevel" placeholder="请选择辣度">
+						<ui-option v-for="(item, index) in pepperList" :label="item.name" :value="item.code" :key="index"></ui-option>
 					</ui-select>
-				</ui-form-item>
-
-				<ui-form-item label="排序" :label-width="formLabelWidth" class="item-inline">
-					<ui-input auto-complete="off"></ui-input>
-				</ui-form-item>
-
-				<ui-form-item label="单位" :label-width="formLabelWidth" class="item-inline">
-					<ui-input v-model="reqAdd.unit" auto-complete="off"></ui-input>
 				</ui-form-item>
 
 				<ui-form-item label="原价" :label-width="formLabelWidth" class="item-inline item-prompt">
@@ -39,6 +31,28 @@
 					<span class="prompt">元</span>
 				</ui-form-item>
 
+				<ui-form-item label="全美食价" :label-width="formLabelWidth" class="item-inline item-prompt" prop="discountRate">
+					<ui-input v-model="reqAdd.discountRate" auto-complete="off" v-on:change="calPrice" placeholder="0.0至9.0"></ui-input>
+					<span class="prompt">折</span>
+					<div class="sale">
+						<i>{{price}}</i>
+						<em>元</em>
+					</div>
+				</ui-form-item>
+
+				<ui-form-item label="是否推荐" :label-width="formLabelWidth">
+					<ui-checkbox v-model="recommendFlag">推荐</ui-checkbox>
+				</ui-form-item>
+
+				<!-- ---------------------一期不上  ----------------------- -->
+				<!--<ui-form-item label="排序" :label-width="formLabelWidth" class="item-inline">
+					<ui-input auto-complete="off"></ui-input>
+				</ui-form-item>
+
+				<ui-form-item label="单位" :label-width="formLabelWidth" class="item-inline">
+					<ui-input v-model="reqAdd.unit" auto-complete="off"></ui-input>
+				</ui-form-item>
+				
 				<ui-form-item label="促销方式" :label-width="formLabelWidth">
 					<ui-checkbox :checked="saleChecked" v-on:change="saleWay(0)">该菜品参与打折或优惠</ui-checkbox>
 				</ui-form-item>
@@ -69,11 +83,7 @@
 				<ui-form-item label="菜品状态" :label-width="formLabelWidth">
 					<ui-radio class="radio" v-model="reqAdd.status" label="1">上架</ui-radio>
 					<ui-radio class="radio" v-model="reqAdd.status" label="2">下架</ui-radio>
-				</ui-form-item>
-
-				<ui-form-item label="是否推荐" :label-width="formLabelWidth">
-					<ui-checkbox>推荐</ui-checkbox>
-				</ui-form-item>
+				</ui-form-item>-->
 
 			</ui-form>
 			<div slot="footer" class="dialog-footer">
@@ -86,15 +96,33 @@
 
 <script>
 	import xhr from 'service'
-	import { meal } from 'service/api'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
+	import { meal, upload } from 'service/api'
+	import { mapGetters } from 'vuex'
 
 	export default {
 
 		data: function() {
+			//自定义验证规则
+			//折扣
+			var validateRate = (rule, value, callback) => {
+				if(value >= 0 && value <= 9.0) {
+					callback();
+				} else {
+					callback(new Error('请输入0.0至9.0的折扣价'));
+				}
+			};
+
 			return {
+				//表单验证
+				rules: {
+					discountRate: [
+						{ validator: validateRate, trigger: 'change' }
+					]
+				},
+
+				//是否显示菜品缩略图
+				isIcon: '',
+
 				//模态框
 				dialogAdd: true,
 
@@ -110,41 +138,83 @@
 				//优惠
 				favoFlag: true,
 
+				//是否推荐
+				recommendFlag: false,
+
 				//请求类别
 				reqCate: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					type: 1
 				},
 				shopCategorys: [],
 
 				//发送新增菜品请求
 				reqAdd: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					categoryId: '',
 					icon: '',
 					title: '',
-					unit: '',
+					pepperLevel: '',
 					originalPrice: '',
 					price: '',
-					promType: '0',
-					favorablePrice: '',
 					discountRate: '',
+					isRecommend: '',
+
+					//一期不上
+					/*promType: '0',
+					favorablePrice: '',
 					orderNum: 1,
-					status: '1'
-				}
+					status: '1',					
+					unit: ''*/
+				},
+
+				//辣度
+				pepperList: []
 			};
 		},
 
 		watch: {
 			//动态控制模态框显示隐藏
-			dialogAdd: function() {
-				this.$emit('addModalTrans');
+			dialogAdd() {
+				this.$parent.isShowAdd = false;
 			}
 		},
 
+		computed: {
+			price() {
+				let price = parseFloat(this.reqAdd.originalPrice) * parseFloat(this.reqAdd.discountRate / 10);
+				if(isNaN(price)) {
+					return;
+				}
+
+				if(!price) {
+					price = this.reqAdd.originalPrice;
+				}
+
+				//强制保留两位小数
+				price = Math.round(price * 100) / 100;
+				price = price.toString();
+				var rs = price.indexOf('.');
+				if(rs < 0) {
+					rs = price.length;
+					price += '.';
+				}
+				while(price.length <= rs + 2) {
+					price += '0';
+				}
+
+				return price;
+			},
+			
+			...mapGetters(['session','shopId'])
+		},
+
 		created: function() {
+			this.reqCate.session=this.session;
+			this.reqCate.shopId=this.shopId;
+			
 			//查询当前店铺菜品类型
 			xhr({
 				url: meal.getShopCategorys,
@@ -152,14 +222,40 @@
 			}).then((res) => {
 				this.shopCategorys = res.info;
 			})
+
+			//查询辣度
+			xhr({
+				url: meal.pepperLevel,
+				options: {
+					session: this.session
+				}
+			}).then((res) => {
+				if(res.info) {
+					this.pepperList = res.info;
+				}
+			})
 		},
 
 		methods: {
 			//上传图片
-			handleAvatarScucess: function(res, file) {
-				this.imageUrl = URL.createObjectURL(file.raw);
-			},
 			beforeAvatarUpload: function(file) {
+				let self = this;
+
+				let reader = new FileReader();
+				// 将文件以Data URL形式读入页面
+				reader.readAsDataURL(file);
+				reader.onload = function() {
+					xhr({
+						url: upload.img,
+						options: {
+							photoStr: this.result
+						}
+					}).then((res) => {
+						self.isIcon = true;
+						self.reqAdd.icon = res.url;
+					})
+				}
+
 				const isJPG = file.type === 'image/jpeg';
 				const isLt2M = file.size / 1024 / 1024 < 2;
 
@@ -172,6 +268,8 @@
 				return isJPG && isLt2M;
 			},
 
+			//  *************************一期不上****************************//
+			/*	
 			//选择促销方式
 			saleWay: function(type) {
 				if(type == 0) {
@@ -206,17 +304,35 @@
 				if(!this.reqAdd.price && this.reqAdd.price != 0) {
 					this.reqAdd.price = this.reqAdd.originalPrice;
 				}
+			},*/
+
+			//一期计算售价
+			calPrice: function() {
+
 			},
 
 			//添加菜品
 			add: function() {
+				//是否推荐
+				if(this.recommendFlag) {
+					this.reqAdd.isRecommend = '1';
+				} else {
+					this.reqAdd.isRecommend = '0';
+				}
+
+				this.reqAdd.price = this.price;
+				this.reqAdd.session = this.session;
+				this.reqAdd.shopId = this.shopId;
+
 				xhr({
 					url: meal.addShopItem,
 					options: this.reqAdd
 				}).then((res) => {
 					if(res.info == 1) {
-						console.log(res)
-						alert('添加菜品成功');
+						this.$message({
+							message: '添加成功！',
+							type: 'success'
+						});
 						this.dialogAdd = false;
 					}
 				})
@@ -226,7 +342,7 @@
 </script>
 
 <style lang="scss">
-	.avatar-uploader .el-upload {
+	.meal-add .avatar-uploader .el-upload {
 		border: 1px dashed #d9d9d9;
 		border-radius: 6px;
 		cursor: pointer;
@@ -234,17 +350,17 @@
 		overflow: hidden;
 	}
 	
-	.avatar-uploader {
+	.meal-add .avatar-uploader {
 		display: inline-block;
 		width: 140px;
 		vertical-align: middle;
 	}
 	
-	.avatar-uploader .el-upload:hover {
+	.meal-add .avatar-uploader .el-upload:hover {
 		border-color: #20a0ff;
 	}
 	
-	.avatar-uploader .avatar-uploader-icon {
+	.meal-add .avatar-uploader .avatar-uploader-icon {
 		font-size: 28px;
 		color: #8c939d;
 		width: 120px;
@@ -253,11 +369,11 @@
 		text-align: center;
 	}
 	
-	.el-form-item__content {
+	.pic-item .el-form-item__content {
 		line-height: 1.2;
 	}
 	
-	.icon-prompt {
+	.meal-add .icon-prompt {
 		display: inline-block;
 		width: auto;
 		vertical-align: middle;
@@ -265,31 +381,34 @@
 		white-space: pre-wrap;
 		word-wrap: break-word;
 		overflow: hidden;
+		color: #FBBA00;
 	}
 	
-	.avatar {
+	.meal-add .avatar {
 		width: 178px;
 		height: 178px;
 		display: block;
 	}
 	
-	.item-inline {
-		display: inline-block;
-		width: 45%;
-		position: relative;
+	.meal-add {
+		.el-select {
+			display: block;
+		}
+		.item-inline {
+			position: relative;
+		}
+		.item-prompt .el-input {
+			position: relative;
+		}
 	}
 	
-	.item-prompt .el-input {
-		position: relative;
-	}
-	
-	.item-prompt .prompt {
+	.meal-add .item-prompt .prompt {
 		position: absolute;
 		right: -20px;
 		top: 0;
 	}
 	
-	.item-inline .el-radio {
+	.meal-add .item-inline .el-radio {
 		position: absolute;
 		left: -70px;
 		top: 0;

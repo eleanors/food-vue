@@ -12,6 +12,7 @@ import Element from 'element-ui'
 import 'assets/element-ui.scss'
 // import 'element-ui/lib/theme-default/index.css'
 
+const isMessage = true
 
 function isObject (obj) {
     return obj !== null && typeof obj === 'object'
@@ -42,35 +43,40 @@ Vue.config.productionTip = false
 //start debug mode
 Vue.config.debug = true
 
-
 // Resource Header Set
 Vue.http.options.emulateJSON = true
 Vue.http.options.emulateHTTP = true
-// Vue.http.options.root = '/src';
-Vue.http.options.xhr = {withCredentials: true}
-Vue.http.options.shopId = 13
-Vue.http.options.session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ'
-Vue.http.headers.common['Authorization'] = 'Basic YXBpOnBhc3N3b3Jk'
+
 
 
 Vue.http.interceptors.push((request, next) => {
+
         //request.method = 'POST',
         next((response) => {
                 if(response.status == 400) {
-
-                        throw new Error('request exception...')
+                        isMessage && Vue.prototype.message({
+                            type: 'error',
+                            message: '请求出错, 再试试'
+                        })
                 }
                 if(response.status == 404){
 
-                        throw new Error(request.url +' is not found...')
+                        isMessage && Vue.prototype.message({
+                            type: 'error',
+                            message: '访问了不存在的API或页面'
+                        })
                 }
                 if(response.status == 500){
-
-                        throw new Error('Service error request fail...')
+                        isMessage && Vue.prototype.message({
+                            type: 'error',
+                            message: '服务器坏了, 等会再试'
+                        })
                 }
                 if(response.data == null) {
-
-                        console.log('Internet Exception....')
+                        Vue.prototype.message({
+                            type: 'error',
+                            message: '网络异常'
+                        })
                 }
                 return response
         })

@@ -19,7 +19,7 @@
 
         <ui-tabs class="food-list-wrap" v-model="actived" v-loading="loading" element-loading-text='拼命加载中...'>
 
-            <ui-tab-pane class="food-pannel" v-for="(cate, index) in categoryList" v-bind:key="index" v-bind:label="cate.label" v-bind:name="cate.id">
+            <ui-tab-pane class="food-pannel" v-for="(cate, index) in categoryListFilter" v-bind:key="index" v-bind:label="cate.label" v-bind:name="cate.id">
                     <view-dishes v-bind:shopId="shopId" v-bind:dishes="cate.cate"></view-dishes>
             </ui-tab-pane>
         </ui-tabs>
@@ -35,9 +35,12 @@ import xhr from 'service'
 import { order } from 'service/api'
 import viewDishes from './part/Dishes'
 import viewMiniFood from './part/MiniFood'
-
+import EnsureBtn from './part/EnsureBtnMixin'
 
 export default {
+
+        mixins: [EnsureBtn],
+
         data: function(){
             return {
 
@@ -76,60 +79,33 @@ export default {
                         quantity: 0,
                         pic: 'static/01.png'
                     }]
-                },{
-                    id: '2',
-                    label: 'EEE',
-                    cate: [{
-                        id: '004',
-                        categoryId: '02',
-                        title: 'EEE1',
-                        favorablePrice: '100',
-                        originprice: '200',
-                        quantity: 0,
-                        pic: 'static/01.png'
-                    },{
-                        id: '005',
-                        categoryId: '02',
-                        title: 'EEE2',
-                        favorablePrice: '100',
-                        originprice: '200',
-                        quantity: 0,
-                        pic: 'static/01.png'
-                    },{
-                        id: '006',
-                        categoryId: '02',
-                        title: 'EEE3',
-                        favorablePrice: '100',
-                        originprice: '200',
-                        quantity: 0,
-                        pic: 'static/01.png'
-                    }]
                 }],
-
-                // 确认菜品列表是否可见
-                miniFoodVisible: false,
-                timeout: null,
 
                 // 清空已加菜品提示
                 isclearEmpty: false,
 
-                loading: false
+                loading: true
             }
         },
 
         computed: {
 
-            ...mapGetters(['miniFood', 'foodCount']),
+            ...mapGetters(['session', 'shopId', 'miniFood', 'foodCount']),
 
-
+            // 监听miniFood的变化 同步更新到 miniFood 列表
             miniFoodList: function(){
-                    let miniFoodList = []
+                   let miniFoodList = []
 
                     if(this.miniFood && this.miniFood[this.shopId]){
 
                             for(let cate in this.miniFood[this.shopId]){
+                                    for(let item in this.miniFood[this.shopId][cate]){
 
-                                    miniFoodList.push(...this.miniFood[this.shopId][cate])
+                                            if(this.miniFood[this.shopId][cate][item]
+                                            &&this.miniFood[this.shopId][cate][item].quantity>0){
+                                                miniFoodList.push(this.miniFood[this.shopId][cate][item])
+                                            }
+                                    }
                             }
                     }
                     return miniFoodList
@@ -140,11 +116,14 @@ export default {
                     this.categoryList.forEach( (cateList, index)=> {
 
                             cateList.cate.forEach( (item, index)=> {
-                                    this.miniFoodList.forEach( (food)=> {
-                                            if(item.id == food.id) {
-                                                   // item.quantity = food.quantity
-                                            }
-                                    })
+                                    item.quantity = 0  // 这里需要重置数量为0
+                                    if(this.miniFoodList.length){
+                                            this.miniFoodList.forEach( (food)=> {
+                                                    if(item.id == food.id) {
+                                                            item.quantity = food.quantity
+                                                    }
+                                            })
+                                    }
                             })
                     })
                     return this.categoryList
@@ -163,46 +142,23 @@ export default {
 
                 //  初始化MiniFood列表
                 this.initMiniFood()
-/*
+
                 xhr({
                         url: order.getShopCategoryList,
                         options: {
-                               shopId: 13
+                                shopId: this.shopId,
+                                session: this.session
                         }
 
                 }).then((response) => {
-                        this.renderFoodList(response)
-                })*/
-        },
-
-        mounted: function(){
-                this.initEvent()
+                        this.createFoodList(response)
+                }, response => {
+                        this.loading = false;
+                })
         },
 
         methods: {
 
-                initEvent: function(){
-                    let elemBtn = this.$refs.ensureBtn
-
-                    elemBtn.addEventListener('mouseenter', this.showMiniFood)
-                    elemBtn.addEventListener('mouseleave', this.hideMiniFood)
-                },
-
-                showMiniFood: function(){
-
-                    clearTimeout(this.timeout)
-                    this.timeout = setTimeout( ()=> {
-                            this.miniFoodVisible = true
-                    }, 250)
-                },
-
-                hideMiniFood: function(){
-
-                    clearTimeout(this.timeout)
-                    this.timeout = setTimeout( ()=> {
-                            this.miniFoodVisible = false
-                    }, 250)
-                },
 
                 clearHandle: function(foodList){
 
@@ -210,7 +166,7 @@ export default {
                 },
 
                 // 获取菜品初始数据
-                renderFoodList: function(data){
+                createFoodList: function(data){
                     let categoryList = []
                     if(data && typeof data.queryShopCategoryList == 'object'){
                             data.queryShopCategoryList.forEach((cate, index) => {
@@ -224,7 +180,7 @@ export default {
                                                     id: item.id,
                                                     categoryId: item.categoryId,
                                                     title: item.title,
-                                                    favorablePrice: item.favorablePrice || 0,
+                                                    price: item.price || 0,
                                                     originalPrice: item.originalPrice || 0,
                                                     quantity: 0,
                                                     pic: item.picUrl || 'static/01.png'
@@ -260,7 +216,9 @@ export default {
                                     orderNo: '',
                                     shopId: '',
                                     telPhone: '',
-                                    itemList: foodList
+                                    itemList: JSON.stringify(foodList),
+                                    shopId: this.shopId,
+                                    session: this.session
                             }
                     }).then( (response)=> {
                             if(response.saveIndiegogoItem == '1') {
@@ -270,6 +228,7 @@ export default {
                                     })
                             }
                     })
+
                 },
 
                 ...mapActions(['calcQuantity', 'initMiniFood'])
@@ -289,7 +248,7 @@ export default {
 
         position: relative;
 
-        padding: 30px 10px;
+        padding: 40px 10px;
         margin-bottom: 20px;
         background: #fff;
 
@@ -358,7 +317,7 @@ export default {
      /** 菜品列表 */
     .food-list-wrap {
 
-            height: 84%;
+            min-height: 74%;
             background: #fff;
 
 

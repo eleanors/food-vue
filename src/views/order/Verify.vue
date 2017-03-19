@@ -1,10 +1,13 @@
 <template>
 
 <div class="view-verify">
+<div class="verify-content">
+
        <form  class="verify-form" role="form">
              <input type="text" name="order-code" class="code fs-16" v-model="code" placeholder="请输入验证码" autocomplete="off" />
              <button type="button" class="btn-code" v-on:click.prevent="sendCode">确认</button>
        </form>
+</div>
 </div>
 </template>
 
@@ -13,13 +16,17 @@
 
 import xhr from 'service'
 import { order } from 'service/api'
-
+import { mapGetters } from 'vuex'
 
 export default {
     data: function(){
         return {
             code: ''
         }
+    },
+
+    computed: {
+            ...mapGetters(['session', 'shopId'])
     },
 
     methods: {
@@ -40,7 +47,9 @@ export default {
             this.validator() && xhr({
                 url: order.OrderVerification,
                 options: {
-                        verif_code: this.code
+                        verif_code: this.code,
+                        shopId: this.shopId,
+                        session: this.session
                 }
             }).then( response => {
 
@@ -64,25 +73,30 @@ export default {
 
     width: 100%;
     height: 100%;
-    background: #fff;
     overflow: hidden;
+}
+
+.verify-content {
+    width: 100%;
+    height: calc(100% - 100px);
+    background: #fff;
 }
 .verify-form {
 
     width: 372px;
     height: 188px;
     position: relative;
-    top: 50%;
-    margin: -94px auto 0;
+    top: 40%;
+    margin: 0 auto ;
 }
 
 
 .view-verify input[name="order-code"]{
    width: 368px;
-   height: 88px;
+   height: 48px;
    padding: 0 30px;
    border: 1px solid #dddddd;
-   border-radius: 16px;
+   border-radius: 6px;
    outline: none;
 }
 

@@ -1,5 +1,5 @@
 <template>
-	<div class="view-del">
+	<div class="meal-del">
 		<ui-dialog title="删除菜品" v-model="dialogDel" size="tiny">
 			<span>确认删除该菜品？</span>
 			<span slot="footer" class="dialog-footer">
@@ -13,9 +13,7 @@
 <script>
 	import xhr from 'service'
 	import { meal } from 'service/api'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
+	import { mapGetters } from 'vuex'
 
 	export default {
 		data: function() {
@@ -24,7 +22,7 @@
 
 				//删除菜品的信息
 				reqDel: {
-					session: session,
+					session: '',
 					id: this.delId
 				}
 			};
@@ -36,19 +34,28 @@
 		watch: {
 			//动态控制模态框显示隐藏
 			dialogDel: function() {
-				this.$emit('delModalTrans');
+				this.$parent.isShowDel = false;
 			}
 		},
+				
+		computed: {
+			...mapGetters(['session','shopId'])
+		},
 
-		methods: {
+		methods: {				
 			//删除菜品
 			del() {
+				this.reqDel.session=this.session;
+				
 				xhr({
 					url: meal.deleteShopItem,
 					options: this.reqDel
 				}).then((res) => {
 					if(res.info == 1) {
-						alert('删除成功！');
+						this.$message({
+							message: '删除成功！',
+							type: 'success'
+						});
 						this.dialogDel = false;
 					}
 				})

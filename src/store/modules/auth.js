@@ -1,18 +1,19 @@
 import * as types from '../type.js'
 
-import {getCookie} from 'vendor/utils'
+import {getCookie, setCookie, delCookie} from 'vendor/utils'
 
 const state = {
 
-      token: getCookie('token') || null,
-      session: getCookie('session') || null,
-      shopInfo: null
+      token: getCookie('token'),
+      session: getCookie('session'),
+      shopId: getCookie('shopId')
 }
 
 
 const getters = {
 
-      shopInfo: state => state.shopInfo
+      session: state => state.session,
+      shopId: state => state.shopId
 }
 
 
@@ -26,8 +27,18 @@ const actions = {
             commit(types.LOGOUT_SHOP)
       },
 
-      setShopInfo({commit}, data){
-            commit(types.SETSHOPINFO, data)
+      setShopSession({commit}, data){
+            commit(types.SET_SHOP_SESSION, data)
+      },
+
+      setShopId({commit}, data){
+            commit(types.SET_SHOPE_ID, data)
+      },
+      clearAuth({commit}){
+            commit(types.CLEAR_SHOP_AUTH)
+      },
+      updateRoute({commit}, route){
+            commit(types.ROUTE_UPDATE_ROUTE, route)
       }
 }
 
@@ -44,9 +55,24 @@ const mutations = {
                state.session = null
        },
 
-       [types.SETSHOPINFO](state, data){
-               state.shopInfo = data
-       }
+       [types.SET_SHOP_SESSION](state, data){
+               state.session = data
+               setCookie('session', data)
+       },
+
+       [types.SET_SHOPE_ID](state, data){
+               state.shopId = data || ''
+               setCookie('shopId', data)
+       },
+
+       [types.CLEAR_SHOP_AUTH](state){
+               delCookie('session')
+               delCookie('shopId')
+       },
+
+       [types.ROUTE_UPDATE_ROUTE](state, route){
+
+       },
 }
 
 

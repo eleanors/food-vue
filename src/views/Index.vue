@@ -1,57 +1,68 @@
 <template>
-      <div>Welcome Home</div>
+
+ <div class="wrapper">
+      <layout-pannel v-bind:menus="pannel"></layout-pannel>
+
+      <div class="main-content">
+          <layout-header></layout-header>
+          <layout-main></layout-main>
+      </div>
+
+</div>
+
 </template>
 
 <script>
+import pannel from 'vendor/pannel'
+import LayoutMain   from 'components/layout/LayoutMain'
+import LayoutPannel from 'components/layout/LayoutPannel'
+import LayoutHeader from 'components/layout/LayoutHeader'
+import LayoutFooter from 'components/layout/LayoutFooter'
+	import xhr from 'service/'
+	import { mapActions, mapGetters } from 'vuex'
 
-import xhr from 'service/'
-import { order } from 'service/api'
+	export default {
+		data: function() {
+			return {
+					pannel
+			}
+		},
 
-import { mapActions, mapGetters } from 'vuex'
+		computed: {
 
-export default {
-        data: function(){
-            return {
+			...mapGetters(['shopInfo'])
+		},
 
-            }
-        },
+		created: function() {
 
-        computed: {
+		},
 
-            ...mapGetters(['shopInfo'])
-        },
+		mounted: function() {
 
-        created: function(){
-            let self = this
-            xhr({
-                method: 'get',
-                url: order.getDetail,
-                options: {
-                    id: ''
-                }
-            })
-            .then(function(data){
+		},
 
-                    self.message({
-                          message: '这是一条假数据...',
-                          type: 'success'
-                    });
-                    console.log(data)
-                    self.setShopInfo({name: 'MM'})
-            })
-        },
+		methods: {
 
-        mounted: function(){
+			...mapActions(['setShopInfo'])
+		},
 
-        },
-
-        methods: {
-
-            ...mapActions(['setShopInfo'])
+        components: {
+                LayoutHeader,
+                LayoutPannel,
+                LayoutMain,
+                LayoutFooter
         }
-    }
+	}
 </script>
 
 <style>
+	.welcome {
+		min-height: 690px;
+		background: #fff;
+		padding: 35px 52px;
+	}
 
+	.copyright {
+		padding: 20px;
+	}
 </style>

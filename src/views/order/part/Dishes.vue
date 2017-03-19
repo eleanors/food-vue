@@ -1,17 +1,17 @@
 <template>
     <ui-row class="section-food-list" :gutter="10">
-            <ui-col class="food-item" :md="12" :lg="8" v-for="(item, index) in dishes" :key="index">
+            <ui-col class="food-item" :md="12" :lg="8" v-for="(item, index) in dishes" v-bind:key="index">
                     <div class="pic f-l"><img :src="item.pic" /></div>
                     <div class="detail">
                             <h4 class="ellipsis" v-text="item.title"></h4>
                             <p class="price">
-                                    <span>￥{{item.favorablePrice}}</span>
+                                    <span>￥{{item.price}}</span>
                                     <span>原价￥{{item.originalPrice}}</span>
                             </p>
                             <p class="food-amount">
-                                    <i class="reduce" v-on:click="decrease(item.categoryId, item)"></i>
+                                    <i class="reduce" v-on:click="decrease(item.categoryId, item.id, item)"></i>
                                     <input name="number" type="text" v-model="item.quantity" readonly>
-                                    <i class="add" v-on:click="increase(item.categoryId, item)"></i>
+                                    <i class="add" v-on:click="increase(item.categoryId, item.id, item)"></i>
                             </p>
                     </div>
             </ui-col>
@@ -22,6 +22,11 @@
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
+        data: function(){
+
+                return {}
+        },
+
         props: {
                 // 当前分类下所有菜品
                 dishes: {
@@ -36,23 +41,38 @@ export default {
                     required: true
                 }
         },
+
+        computed: {
+
+            ...mapGetters(['miniFood']),
+
+            miniFoodList: function(){
+                    //return Object.assign({}, this.miniFood[this.shopId])
+            },
+
+            foodNum: function(){
+
+            }
+        },
+
+
         methods: {
 
 
-                increase: function(cateId, food){
+                increase: function(cateId, foodId, food){
 
-                        this.addFood({shopId: this.shopId, cateId, food})
+                        this.addFood({shopId: this.shopId, cateId, foodId, food})
                 },
 
-                decrease: function(cateId, food){
-                        this.reduceFood({shopId: this.shopId, cateId, food})
+                decrease: function(cateId, foodId, food){
+                        this.reduceFood({shopId: this.shopId, cateId, foodId, food})
                 },
 
                 ...mapActions(['addFood', 'reduceFood'])
         }
 }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 
 .section-food-list {
 
@@ -95,10 +115,11 @@ export default {
                     }
               }
               .food-amount {
-                      & > * {
+                    font-size: 0;
+                    & > * {
                             vertical-align: middle;
                           }
-                      i{
+                    i{
                             display: inline-block;
                             width: 34px;
                             height: 34px;
@@ -109,8 +130,8 @@ export default {
                             border-radius: 34px;
                             cursor: pointer;
                             position: relative;
-                      }
-                      .reduce::before{
+                    }
+                    .reduce::before{
                             display: block;
                             content: '';
                             width: 14px;
@@ -119,8 +140,8 @@ export default {
                             position: absolute;
                             left: 8px;
                             top: 14px;
-                      }
-                      .add {
+                    }
+                    .add {
                             background: #2eb165;
                             &::before{
                                  display: block;
@@ -142,8 +163,8 @@ export default {
                                  left: 14px;
                                  top: 8px;
                             }
-                      }
-                      input{
+                    }
+                    input{
                             width: 46px;
                             height: 34px;
                             border: 0;
@@ -151,8 +172,9 @@ export default {
                             color: #656565;
                             text-align: center;
                             padding: 0px 8px;
+                            font-size: 14px;
                             outline: none;
-                      }
+                    }
               }
         }
 }

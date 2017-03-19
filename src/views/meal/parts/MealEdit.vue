@@ -1,9 +1,9 @@
 <template>
-	<div class="view-edit">
+	<div class="meal-edit">
 		<ui-dialog title="编辑菜品" v-model="dialogEdit">
-			<ui-form>
-				<ui-form-item label="上传菜品缩略图" :label-width="formLabelWidth">
-					<ui-upload class="avatar-uploader" action="//jsonplaceholder.typicode.com/posts/" :show-file-list="false" :on-success="handleAvatarScucess" :before-upload="beforeAvatarUpload">
+			<ui-form :model="reqEdit" :rules="rules">
+				<ui-form-item label="上传菜品缩略图" :label-width="formLabelWidth" class="pic-item">
+					<ui-upload class="avatar-uploader" action="https://test.meia8.com/api-shop/" :show-file-list="false" :before-upload="beforeAvatarUpload">
 						<img v-if="reqEdit.icon" :src="reqEdit.icon" class="avatar">
 						<i v-else class="el-icon-plus avatar-uploader-icon"></i>
 					</ui-upload>
@@ -21,22 +21,36 @@
 				</ui-form-item>
 
 				<ui-form-item label="辣度" :label-width="formLabelWidth" class="item-inline">
-					<ui-select v-model="reqEdit.categoryId" placeholder="请选择辣度">
-						<ui-option v-for="(item, index) in shopCategorys" :label="item.categoryTitle" :value="item.categoryId" :key="index"></ui-option>
+					<ui-select v-model="reqEdit.pepperLevel" placeholder="请选择辣度">
+						<ui-option v-for="(item, index) in pepperList" :label="item.name" :value="item.code" :key="index"></ui-option>
 					</ui-select>
-				</ui-form-item>
-
-				<ui-form-item label="排序" :label-width="formLabelWidth" class="item-inline">
-					<ui-input auto-complete="off"></ui-input>
-				</ui-form-item>
-
-				<ui-form-item label="单位" :label-width="formLabelWidth" class="item-inline">
-					<ui-input v-model="reqEdit.unit" auto-complete="off"></ui-input>
 				</ui-form-item>
 
 				<ui-form-item label="原价" :label-width="formLabelWidth" class="item-inline item-prompt">
 					<ui-input v-model="reqEdit.originalPrice" auto-complete="off" v-on:change="calPrice"></ui-input>
 					<span class="prompt">元</span>
+				</ui-form-item>
+
+				<ui-form-item label="全美食价" :label-width="formLabelWidth" class="item-inline item-prompt">
+					<ui-input v-model="reqEdit.discountRate" auto-complete="off" v-on:change="calPrice" placeholder="0.0至9.0"></ui-input>
+					<span class="prompt">折</span>
+					<div class="sale">
+						<i>{{price}}</i>
+						<em>元</em>
+					</div>
+				</ui-form-item>
+
+				<ui-form-item label="是否推荐" :label-width="formLabelWidth">
+					<ui-checkbox v-model="recommendFlag">推荐</ui-checkbox>
+				</ui-form-item>
+
+				<!-- ---------------------一期不上  ----------------------- -->
+				<!--<ui-form-item label="排序" :label-width="formLabelWidth" class="item-inline">
+					<ui-input auto-complete="off"></ui-input>
+				</ui-form-item>
+
+				<ui-form-item label="单位" :label-width="formLabelWidth" class="item-inline">
+					<ui-input v-model="reqEdit.unit" auto-complete="off"></ui-input>
 				</ui-form-item>
 
 				<ui-form-item label="促销方式" :label-width="formLabelWidth">
@@ -69,11 +83,7 @@
 				<ui-form-item label="菜品状态" :label-width="formLabelWidth">
 					<ui-radio class="radio" v-model="reqEdit.status" label="1">上架</ui-radio>
 					<ui-radio class="radio" v-model="reqEdit.status" label="2">下架</ui-radio>
-				</ui-form-item>
-
-				<ui-form-item label="是否推荐" :label-width="formLabelWidth">
-					<ui-checkbox>推荐</ui-checkbox>
-				</ui-form-item>
+				</ui-form-item>-->
 
 			</ui-form>
 			<div slot="footer" class="dialog-footer">
@@ -86,14 +96,32 @@
 
 <script>
 	import xhr from 'service'
-	import { meal } from 'service/api'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
+	import { meal, upload } from 'service/api'
+	import { mapGetters } from 'vuex'
 
 	export default {
 		data: function() {
+			//自定义验证规则
+			//折扣
+			var validateRate = (rule, value, callback) => {
+				if(value >= 0 && value <= 9.0) {
+					callback();
+				} else {
+					callback(new Error('请输入0.0至9.0的折扣价'));
+				}
+			};
+
 			return {
+				//表单验证
+				rules: {
+					discountRate: [
+						{ validator: validateRate, trigger: 'change' }
+					]
+				},
+
+				//是否显示菜品缩略图
+				isIcon: true,
+
 				//模态框
 				dialogEdit: true,
 
@@ -109,36 +137,45 @@
 				//优惠
 				favoFlag: true,
 
+				//是否推荐
+				recommendFlag: false,
+
 				//请求当前菜品信息
 				reqInfo: {
-					session: session,
+					session: '',
 					id: this.editId
 				},
 
 				//菜品类别
 				reqCate: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					type: 1
 				},
 				shopCategorys: [],
 
 				//请求数据
 				reqEdit: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					id: this.editId,
 					categoryId: '',
 					icon: '',
 					title: '',
-					unit: '',
+					pepperLevel: '',
 					originalPrice: '',
 					price: '',
-					promType: '0',
-					favorablePrice: '',
 					discountRate: '',
-					status: '1'
-				}
+					isRecommend: '',
+
+					/*promType: '0',
+					favorablePrice: '',
+					status: '1',
+					unit: ''*/
+				},
+
+				//辣度
+				pepperList: []
 			};
 		},
 
@@ -147,11 +184,43 @@
 		watch: {
 			//动态控制模态框显示隐藏
 			dialogEdit: function() {
-				this.$emit('editModalTrans');
+				this.$parent.isShowEdit = false;
 			}
 		},
 
+		computed: {
+			price() {
+				let price = parseFloat(this.reqEdit.originalPrice) * parseFloat(this.reqEdit.discountRate / 10);
+				if(isNaN(price)) {
+					return;
+				}
+
+				if(!price) {
+					price = this.reqEdit.originalPrice;
+				}
+
+				//强制保留两位小数
+				price = Math.round(price * 100) / 100;
+				price = price.toString();
+				var rs = price.indexOf('.');
+				if(rs < 0) {
+					rs = price.length;
+					price += '.';
+				}
+				while(price.length <= rs + 2) {
+					price += '0';
+				}
+
+				return price;
+			},
+
+			...mapGetters(['session', 'shopId'])
+		},
+
 		created: function() {
+			this.reqInfo.session = this.session;
+			this.reqInfo.shopId = this.shopId;
+
 			//查询当前菜品信息
 			xhr({
 				url: meal.getShopItemById,
@@ -162,15 +231,26 @@
 					this.reqEdit.categoryId = info.categoryId;
 					this.reqEdit.icon = info.icon;
 					this.reqEdit.title = info.title;
-					this.reqEdit.unit = info.unit;
 					this.reqEdit.originalPrice = info.originalPrice;
 					this.reqEdit.price = info.price;
+					this.reqEdit.discountRate = info.discountRate;
+					this.reqEdit.isRecommend = info.isRecommend;
+					this.reqEdit.pepperLevel = info.pepperLevel.toString();
+
+					if(info.isRecommend == '1') {
+						this.recommendFlag = true;
+					} else {
+						this.recommendFlag = false;
+					}
+
+					//一期不上
+					/*this.reqEdit.unit = info.unit;
 					this.reqEdit.promType = info.promType.toString();
 					this.reqEdit.favorablePrice = info.favorablePrice;
-					this.reqEdit.discountRate = info.discountRate;
-					this.reqEdit.status = info.status.toString();
-					
-					if(info.promType == 0) {
+					this.reqEdit.status = info.status.toString();*/
+
+					//一期不上
+					/*if(info.promType == 0) {
 						this.saleChecked = false;
 						this.discountFlag = true;
 						this.favoFlag = true;
@@ -182,10 +262,13 @@
 						this.saleChecked = true;
 						this.discountFlag = true;
 						this.favoFlag = true;
-					}
+					}*/
+
 				}
 			});
 
+			this.reqCate.session = this.session;
+			this.reqCate.shopId = this.shopId;
 			//查询当前店铺菜品类型
 			xhr({
 				url: meal.getShopCategorys,
@@ -193,17 +276,39 @@
 			}).then((res) => {
 				this.shopCategorys = res.info;
 			});
-		},
 
-		mounted: function() {
-
+			//查询辣度
+			xhr({
+				url: meal.pepperLevel,
+				options: {
+					session: this.session
+				}
+			}).then((res) => {
+				if(res.info) {
+					this.pepperList = res.info;
+				}
+			})
 		},
 
 		methods: {
-			handleAvatarScucess: function(res, file) {
-				this.imageUrl = URL.createObjectURL(file.raw);
-			},
+			//上传图片
 			beforeAvatarUpload: function(file) {
+				let self = this;
+
+				let reader = new FileReader();
+				// 将文件以Data URL形式读入页面
+				reader.readAsDataURL(file);
+				reader.onload = function() {
+					xhr({
+						url: upload.img,
+						options: {
+							photoStr: this.result
+						}
+					}).then((res) => {
+						self.reqEdit.icon = res.url;
+					})
+				}
+
 				const isJPG = file.type === 'image/jpeg';
 				const isLt2M = file.size / 1024 / 1024 < 2;
 
@@ -216,6 +321,35 @@
 				return isJPG && isLt2M;
 			},
 
+			//确认编辑菜品
+			edit: function() {
+				//是否推荐
+				if(this.recommendFlag) {
+					this.reqEdit.isRecommend = '1';
+				} else {
+					this.reqEdit.isRecommend = '0';
+				}
+
+				this.reqEdit.price = this.price;
+				this.reqEdit.session = this.session;
+				this.reqEdit.shopId = this.shopId;
+				
+				xhr({
+					url: meal.updateShopItem,
+					options: this.reqEdit
+				}).then((res) => {
+					if(res.info == 1) {
+						this.$message({
+							message: '编辑成功！',
+							type: 'success'
+						});
+					}
+					this.dialogEdit = false;
+				})
+			},
+
+			//  *************************一期不上****************************//	
+			/*
 			//选择促销方式
 			saleWay: function(type) {
 				if(type == 0) {
@@ -250,27 +384,18 @@
 				if(!this.reqEdit.price && this.reqEdit.price != 0) {
 					this.reqEdit.price = this.reqEdit.originalPrice;
 				}
-			},
+			},*/
 
-			//确认编辑菜品
-			edit: function() {
-				console.log(this.reqEdit)
-				xhr({
-					url: meal.updateShopItem,
-					options: this.reqEdit
-				}).then((res) => {
-					if(res.info == 1) {
-						alert('编辑菜品成功');
-					}
-					this.dialogEdit = false;
-				})
-			}
+			//一期计算售价
+			calPrice: function() {
+
+			},
 		}
 	}
 </script>
 
 <style lang="scss">
-	.avatar-uploader .el-upload {
+	.meal-edit .avatar-uploader .el-upload {
 		width: 100%;
 		height: 100%;
 		border: 1px dashed #d9d9d9;
@@ -280,7 +405,7 @@
 		overflow: hidden;
 	}
 	
-	.avatar-uploader {
+	.meal-edit .avatar-uploader {
 		display: inline-block;
 		width: 140px;
 		height: 140px;
@@ -288,16 +413,16 @@
 		overflow: hidden;
 	}
 	
-	.avatar-uploader img {
+	.meal-edit .avatar-uploader img {
 		width: 100%;
 		height: 100%;
 	}
 	
-	.avatar-uploader .el-upload:hover {
+	.meal-edit .avatar-uploader .el-upload:hover {
 		border-color: #20a0ff;
 	}
 	
-	.avatar-uploader .avatar-uploader-icon {
+	.meal-edit .avatar-uploader .avatar-uploader-icon {
 		font-size: 28px;
 		color: #8c939d;
 		width: 120px;
@@ -306,11 +431,11 @@
 		text-align: center;
 	}
 	
-	.el-form-item__content {
+	.pic-item .el-form-item__content {
 		line-height: 1.2;
 	}
 	
-	.icon-prompt {
+	.meal-edit .icon-prompt {
 		display: inline-block;
 		width: auto;
 		vertical-align: middle;
@@ -318,31 +443,30 @@
 		white-space: pre-wrap;
 		word-wrap: break-word;
 		overflow: hidden;
+		color: #FBBA00;
 	}
 	
-	.avatar {
+	.meal-edit .avatar {
 		width: 178px;
 		height: 178px;
 		display: block;
 	}
 	
-	.item-inline {
-		display: inline-block;
-		width: 45%;
+	.meal-edit .item-inline {
 		position: relative;
 	}
 	
-	.item-prompt .el-input {
+	.meal-edit .item-prompt .el-input {
 		position: relative;
 	}
 	
-	.item-prompt .prompt {
+	.meal-edit .item-prompt .prompt {
 		position: absolute;
 		right: -20px;
 		top: 0;
 	}
 	
-	.item-inline .el-radio {
+	.meal-edit .item-inline .el-radio {
 		position: absolute;
 		left: -70px;
 		top: 0;

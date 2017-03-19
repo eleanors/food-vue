@@ -3,9 +3,8 @@
     box-sizing: border-box;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
-
-*:before,
-*:after {
+*:after,
+*:before {
     box-sizing: border-box;
 }
 
@@ -19,23 +18,62 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, form, fieldset, legend, input, textarea, p, blockquote, th, td, hr, button, article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+article,
+aside,
+blockquote,
+body,
+button,
+dd,
+details,
+div,
+dl,
+dt,
+fieldset,
+figcaption,
+figure,
+footer,
+form,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+header,
+hgroup,
+hr,
+input,
+legend,
+li,
+menu,
+nav,
+ol,
+p,
+section,
+td,
+textarea,
+th,
+ul {
     margin: 0;
     padding: 0;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
 }
 
-ul,
-ol {
+ol,
+ul {
     list-style: none;
 }
 
-input::-ms-clear, input::-ms-reveal {
+input::-ms-clear,
+input::-ms-reveal {
     display: none;
 }
 
@@ -45,16 +83,13 @@ a {
     text-decoration: none;
     outline: none;
     cursor: pointer;
-    transition: all .2s ease .2s;
-
+    transition: all 0.2s ease 0.2s;
     &:hover {
         color: $link-hover-color;
     }
-
     &:active {
         color: $link-active-color;
     }
-
     &:active,
     &:hover {
         outline: 0;
@@ -67,32 +102,33 @@ a {
         pointer-events: none;
     }
 }
-
-
-/** router link actived */
-.is-active {
-     color: $menu-pannel-actived-color !important;
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+    background-color: #F5F5F5;
 }
 
-.btn{
-      display: inline-block;
-      padding: 12px 12px;
-      font-weight: normal;
-      line-height: 1;
-      text-align: center;
-      white-space: nowrap;
-      vertical-align: middle;
-      cursor: pointer;
-      user-select: none;
-      background-image: none;
-      border-radius: 4px;
-      outline: none;
-      border: none;
-      color: #fff;
-      background: $c-master;
-      &:active {
-            background-image: none;
-            outline: 0;
-            box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
-      }
+
+/*定义滚动条轨道 内阴影+圆角*/
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: #F5F5F5;
+}
+
+
+/*定义滑块 内阴影+圆角*/
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+    background-color: #555;
+}
+
+
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+    background-color: rgb(255, 255, 255);
+    background-image: none;
+    color: #999;
 }

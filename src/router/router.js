@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import routes from './routes'
 import VueRouter from 'vue-router'
+import {getStore} from 'vendor/utils'
 
 const title = 'Food'
 
@@ -35,6 +36,16 @@ router.beforeEach(function(to, from, next){
                 }
         }
         document.title = pageTitle
+
+        //store.commit([ROUTE_UPDATE_ROUTE],route);
+        //
+        if(to.matched.some(record=>record.meta.requireAuth)){
+                if(getStore('session')){
+                   // next({path: '/'})
+                }
+        }else{
+                //next()
+        }
         next()
 })
 

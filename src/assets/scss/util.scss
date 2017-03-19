@@ -24,8 +24,6 @@
     font-size: 24px;
 }
 
-
-
 /*** textAlign ***/
 
 .t-l {
@@ -39,7 +37,6 @@
     text-align: center;
 }
 
-
 /*** float ***/
 
 .f-l {
@@ -51,35 +48,37 @@
 }
 
 /*** background ***/
-.bg-center{
-      background-size: cover;
-      background-position: center center;
-      background-repeat: no-repeat;
+.bg-center {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
 }
-
 
 /*** vertical-align ***/
 .va-t {
-    vertical-align: top
+    vertical-align: top;
 }
 .va-m {
-    vertical-align: middle
+    vertical-align: middle;
 }
-.va-tb{
-    vertical-align: text-bottom
+.va-tb {
+    vertical-align: text-bottom;
 }
-
-
 
 .h-full {
-     height: 100%;
-     overflow: hidden;
+    height: 100%;
+    overflow: hidden;
 }
-
 
 .ellipsis {
     white-space: nowrap;
     word-break: break-word;
     text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.clearfix:after {
+    content: '';
+    display: block;
+    clear: both;
 }

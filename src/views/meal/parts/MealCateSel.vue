@@ -1,5 +1,5 @@
 <template>
-	<div class="view-sel">
+	<div class="cate-sel">
 		<ui-dialog title="选择菜品类别" v-model="dialogSel">
 			<ui-form>
 				<ui-collapse v-for="(list, index) in platList" :key="index">
@@ -21,9 +21,7 @@
 <script>
 	import xhr from 'service'
 	import { mealCate } from 'service/api'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
+	import { mapGetters } from 'vuex'
 
 	//保存当前店铺初始选择的类别
 	let selList = [];
@@ -40,34 +38,41 @@
 
 				//请求系统提供类别数据
 				reqPlat: {
-					session: session
+					session: ''
 				},
 				platList: [],
 
 				//请求用户已经选择类别数据
 				reqPer: {
-					session: session,
-					shopId: shopId
+					session: '',
+					shopId: ''
 				},
 				perList: [],
 
 				//请求用户新选择类别数据
 				reqSel: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					json: ''
 				}
 			};
 		},
-		
+
 		watch: {
 			//动态控制模态框显示隐藏
 			dialogSel: function() {
-				this.$emit('selModalTrans');
+				this.$parent.isShowSel = false;
 			}
 		},
 
+		computed: {
+			...mapGetters(['session', 'shopId'])
+		},
+
 		created: function() {
+			this.reqPlat.session = this.session;
+			this.reqPlat.shopId = this.shopId;
+
 			//获取系统默认类别
 			xhr({
 				url: mealCate.platCate,
@@ -76,13 +81,17 @@
 				this.platList = res.success;
 
 				//设置选中属性
-				let len = this.platList.length;
-				for(let i = 0; i < len; i++) {
-					for(let j = 0; j < this.platList[i].platformCategoryList.length; j++) {
-						this.platList[i].platformCategoryList[j].disabled = false;
+				if(this.platList) {
+					let len = this.platList.length;
+					for(let i = 0; i < len; i++) {
+						for(let j = 0; j < this.platList[i].platformCategoryList.length; j++) {
+							this.platList[i].platformCategoryList[j].disabled = false;
+						}
 					}
 				}
 
+				this.reqPer.session = this.session;
+				this.reqPer.shopId = this.shopId;
 				//获取当前店铺所选类别
 				xhr({
 					url: mealCate.getShopCate,
@@ -93,20 +102,18 @@
 						selList = this.perList;
 
 						//设置选中状态
-						let len = this.platList.length;
-						for(let i = 0; i < len; i++) {
-							for(let j = 0; j < this.platList[i].platformCategoryList.length; j++) {
-								for(let k = 0; k < this.perList.length; k++) {
-									if(this.perList[k] == this.platList[i].platformCategoryList[j].id) {
-										this.platList[i].platformCategoryList[j].disabled = true;
+						if(this.platList) {
+							let len = this.platList.length;
+							for(let i = 0; i < len; i++) {
+								for(let j = 0; j < this.platList[i].platformCategoryList.length; j++) {
+									for(let k = 0; k < this.perList.length; k++) {
+										if(this.perList[k] == this.platList[i].platformCategoryList[j].id) {
+											this.platList[i].platformCategoryList[j].disabled = true;
+										}
 									}
 								}
 							}
 						}
-
-						//测试
-						//this.platList[1].platformCategoryList[0].disabled = false;
-						//this.perList.pop();
 					}
 				})
 			})
@@ -164,13 +171,18 @@
 				}
 
 				this.reqSel.json = JSON.stringify(addInfo);
+				this.reqSel.session = this.session;
+				this.reqSel.shopId = this.shopId;
 
 				//确认选择
 				xhr({
 					url: mealCate.addShopCate,
 					options: this.reqSel
 				}).then((res) => {
-					alert('选择主类别成功！');
+					this.$message({
+						message: '添加成功！',
+						type: 'success'
+					});
 					this.dialogSel = false;
 				})
 			}
@@ -179,16 +191,16 @@
 </script>
 
 <style lang="scss">
-	.el-form .el-collapse {
+	.cate-sel .el-form .el-collapse {
 		border: 0;
 		border-bottom: 1px solid #DDDDDD;
 	}
 	
-	.el-form .el-collapse-item__wrap {
+	.cate-sel .el-form .el-collapse-item__wrap {
 		border: 0;
 	}
 	
-	.cate-list {
+	.cate-sel .cate-list {
 		float: left;
 		width: 16.667%;
 		margin-bottom: 20px;

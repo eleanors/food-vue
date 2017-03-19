@@ -1,7 +1,8 @@
 <template>
   <ul class="position-list">
     <li v-for="(item, index) in position">
-      <router-link :to="item.path" v-text="showName(item)"></router-link>
+      <router-link :to="item.path" v-text="showName(item)" v-if="isLast(index)"></router-link>
+      <span v-text="showName(item)" v-if="!isLast(index)"></span>
       <span class="separator" v-if="isLast(index)" v-text="separator"></span>
     </li>
   </ul>

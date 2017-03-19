@@ -2,19 +2,19 @@
 
 	<div class="">
 		<!--新增菜品-->
-		<view-add v-if="isShowAdd" v-bind:delId="delId" v-on:addModalTrans="isShowAdd = false"></view-add>
+		<view-add v-if="isShowAdd" v-bind:delId="delId"></view-add>
 
 		<!--编辑菜品-->
-		<view-edit v-if="isShowEdit" v-bind:editId="editId" v-on:editModalTrans="isShowEdit = false"></view-edit>
+		<view-edit v-if="isShowEdit" v-bind:editId="editId"></view-edit>
 
 		<!--删除菜品-->
-		<view-del v-if="isShowDel" v-bind:delId="delId" v-on:delModalTrans="isShowDel = false"></view-del>
+		<view-del v-if="isShowDel" v-bind:delId="delId"></view-del>
 
 		<!-- 查询部分 -->
 		<view-search v-on:searchTrans="searchRes" v-on:addTrans="isShowAdd = true"></view-search>
 
 		<!-- 菜品列表 -->
-		<view-list v-bind:shopItems="shopItems" v-on:delTrans="delMeal" v-on:editTrans="editMeal"></view-list>
+		<view-list v-bind:shopItems="shopItems" v-bind:currentPage="currentPage" v-bind:totalCount="totalCount" v-on:delTrans="delMeal" v-on:editTrans="editMeal" v-on:pageTrans="handlePage"></view-list>
 	</div>
 
 </template>
@@ -27,19 +27,7 @@
 	import viewList from './parts/MealList'
 	import xhr from 'service'
 	import { meal } from 'service/api'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
-
-	//获取列表数据
-	const showList = function(self) {
-		xhr({
-			url: meal.getShopItems,
-			options: self.reqSel
-		}).then((res) => {
-			self.shopItems = res.info;
-		})
-	}
+	import { mapGetters } from 'vuex'
 
 	export default {
 		data: function() {
@@ -49,11 +37,17 @@
 				isShowEdit: false,
 				isShowDel: false,
 
+				//当前页
+				currentPage: 1,
+
+				//总数量
+				totalCount: 0,
+
 				//发送列表请求
 				reqSel: {
-					session: session,
-					shopId: shopId,
-					currentPage: 1,
+					session: '',
+					shopId: '',
+					currentPage: '',
 					title: '',
 					categoryId: '',
 					status: ''
@@ -78,12 +72,40 @@
 			viewList
 		},
 
+		watch: {
+			//动态监测分页变化
+			currentPage: function() {
+				this.showList();
+			}
+		},
+
 		created: function() {
 			//获取列表数据
-			showList(this);
+			this.showList();
+		},
+
+		computed: {
+			...mapGetters(['session', 'shopId'])
 		},
 
 		methods: {
+			//列表
+			showList: function() {
+				this.reqSel.currentPage = this.currentPage;
+				this.reqSel.session = this.session;
+				this.reqSel.shopId = this.shopId;
+
+				xhr({
+					url: meal.getShopItems,
+					options: this.reqSel
+				}).then((res) => {
+					if(res.info) {
+						this.shopItems = res.info;
+						this.totalCount = res.pageInfo.totalCount;
+					}
+				})
+			},
+
 			//查询
 			searchRes: function(msg) {
 				this.reqSel.title = msg.title;
@@ -91,7 +113,8 @@
 				this.reqSel.status = msg.status;
 
 				//获取列表数据
-				showList(this);
+				this.currentPage = 1;
+				this.showList();
 			},
 
 			//编辑
@@ -104,6 +127,11 @@
 			delMeal: function(delId) {
 				this.isShowDel = true;
 				this.delId = delId;
+			},
+
+			//分页
+			handlePage: function(currentPage) {
+				this.currentPage = currentPage;
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 <template>
-	<div class="view-search">
+	<div class="meal-search">
 		<ui-row :gutter="10">
 			<ui-col :span="5"><span class="title">菜品名称</span>
 				<ui-input v-model="mealTitle" placeholder="请输入内容"></ui-input>
@@ -10,22 +10,23 @@
 					<ui-option v-for="(item, index) in shopCategorys" :label="item.categoryTitle" :value="item.categoryId" :key="index"></ui-option>
 				</ui-select>
 			</ui-col>
-			<ui-col :span="5">
+			
+			<!--一期不上-->
+			<!--<ui-col :span="5">
 				<span class="title">状态</span>
 				<ui-select v-model="status" placeholder="请选择">
 					<ui-option v-for="(item, index) in shopStatus" :label="item.statusName" :value="item.status" :key="index"></ui-option>
 				</ui-select>
+			</ui-col>-->
+			
+			<ui-col :span="3">
+				<ui-button class="btn-search" v-on:click="mealSearch">查询</ui-button>
 			</ui-col>
 			<ui-col :span="3">
-				<ui-button type="primary" size="large" icon="search" v-on:click="mealSearch">查询</ui-button>
+				<ui-button class="btn-green" v-on:click="mealAdd">添加菜品</ui-button>
 			</ui-col>
 			<ui-col :span="3">
-				<ui-button type="primary" size="large" v-on:click="mealAdd">添加菜品</ui-button>
-			</ui-col>
-			<ui-col :span="3">
-				<ui-button type="primary" size="large">
-					<router-link to="/mealCate">类别管理</router-link>
-				</ui-button>
+				<router-link to="/mealCate" class="mealCate btn-orange" tag="ui-button">类别管理</router-link>
 			</ui-col>
 		</ui-row>
 	</div>
@@ -34,10 +35,7 @@
 <script>
 	import xhr from 'service'
 	import { meal } from 'service/api'
-	import { mapMutations } from 'vuex'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
+	import { mapGetters } from 'vuex'
 
 	export default {
 
@@ -48,24 +46,26 @@
 				shopCategorys: [],
 				status: '',
 				shopStatus: [],
-				
+
 				//请求类别数据
 				reqCate: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					type: 2
 				},
-				
+
+				//一期不上
 				//请求状态数据
-				reqStatus: {
+				/*reqStatus: {
 					session: session,
 					shopId: shopId
-				}
+				}*/
 			}
 		},
-
-		//查询结果
-		props: ['searchData'],
+					
+		computed: {
+			...mapGetters(['session'])
+		},
 
 		created: function() {
 			//查询当前店铺菜品类型
@@ -78,15 +78,16 @@
 				}
 			})
 
+			//一期不上
 			//查询当前店铺菜品状态
-			xhr({
+			/*xhr({
 				url: meal.getShopItemStatus,
 				options: this.reqStatus
 			}).then((res) => {
 				if(res.info) {
 					this.shopStatus = res.info;
 				}
-			})
+			})*/
 		},
 
 		methods: {
@@ -109,8 +110,8 @@
 </script>
 
 <style lang="scss">
-	.view-search {
-		padding: 40px 10px;
+	.meal-search {
+		padding: 40px;
 		margin-bottom: 20px;
 		background: #fff;
 		.el-col>.el-input,
@@ -127,9 +128,5 @@
 			display: inline-block;
 			margin-right: 10px;
 		}
-	}
-	
-	.el-button a {
-		color: #fff!important;
 	}
 </style>

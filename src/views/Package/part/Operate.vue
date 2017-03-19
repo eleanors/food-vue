@@ -1,72 +1,46 @@
 <template>
-  <section>
-    <div id="pa-deskMain">
-      <div class="form-group margin">
-        <label class="pa-label">适用人数</label>
-        <ui-input v-model="input" placeholder="请输入内容"></ui-input>
-      </div>
-      <div class="form-group" id="btns">
-        <label class="pa-label">状态</label>
-        <ui-select v-model="value" placeholder="请选择">
+  <section id="pa-deskMain">
+    <ui-form v-bind:model="searchInfoFrom" ref="searchInfoFrom" v-bind:rules="rules">
+      <ui-form-item prop="input" type="input" v-model.number="searchInfoFrom.input" label="适用人数"
+                    :label-width="formLabelWidth">
+        <ui-input v-model.number="searchInfoFrom.input" placeholder="请输入内容"></ui-input>
+      </ui-form-item>
+      <ui-form-item v-model="searchInfoFrom.input" label="状态" prop="value" label-width="50px">
+        <ui-select v-model="searchInfoFrom.value" placeholder="请选择">
           <ui-option v-for="(item, index) in options" :label="item.label" :value="item.value" :key="index">
           </ui-option>
         </ui-select>
-      </div>
-      <ui-button type="primary" v-on:click="handelSearch">查询</ui-button>
-      <ui-button type="primary" v-on:click="addFoods">添加套餐</ui-button>
-    </div>
-    <!--dialog-->
-    <ui-dialog title="添加套餐" v-model="dialogVisible">
-      <ul :model="form" class="pa-form">
-        <li label="适用人数" :label-width="formLabelWidth">
-          <span class="pa-label">适用人数</span>
-          <ui-input v-model="form.name" auto-complete="off" class="pa-min"></ui-input>
-        </li>
-        <li :label-width="formLabelWidth">
-          <span class="pa-label">至</span>
-          <ui-input v-model="form.name" auto-complete="off" class="pa-max"></ui-input>
-        </li>
-        <li label="排序" :label-width="formLabelWidth">
-          <span class="pa-label">排序</span>
-          <ui-input v-model="form.name" auto-complete="off" class="pa-max"></ui-input>
-        </li>
-        <li>
-          <ui-button label="新增组合" v-on:click="addDish">新增组合</ui-button>
-        </li>
-      </ul>
-      <div class="pa-menu">
-        <ui-tabs v-model="activeName" v-on:tab-click="handleClick" v-on:tab-remove="removeDish">
-          <ui-tab-pane v-for="(item, index) in setMealList" :label="item.title" :name="item.name" :key="index"
-                       v-bind:closable="close" editable>
-            <ui-button>添加菜品</ui-button>
-            <!--dishes component-->
-            <view-dishes v-bind:cate="item.content" :count=false></view-dishes>
-          </ui-tab-pane>
-        </ui-tabs>
-      </div>
-      <div class="pack-status">
-        <label>套餐状态</label>
-        <ui-radio-group v-model="radio">
-          <ui-radio :label="1">上架</ui-radio>
-          <ui-radio :label="2">下架</ui-radio>
-        </ui-radio-group>
-      </div>
-      <div slot="footer" class="dialog-footer">
-        <ui-button v-on:click="dialogVisible = false">取 消</ui-button>
-        <ui-button type="primary" v-on:click="dialogVisible = false">确 定</ui-button>
-      </div>
-    </ui-dialog>
+      </ui-form-item>
+      <ui-form-item>
+        <ui-button type="primary" v-on:click="handelSearch(searchInfoFrom)" class="btn-search  ">查询</ui-button>
+      </ui-form-item>
+      <ui-form-item>
+        <ui-button type="primary" v-on:click="addFoods" v-model="addDishForm" class="btn-orange btn-add">添加套餐</ui-button>
+      </ui-form-item>
+    </ui-form>
+    <!--添加套餐-->
+    <view-add v-if="addDishForm"></view-add>
   </section>
 </template>
 
 <script>
-  import viewDishes from "viewcommon/Dishes"
+  import viewDishes from "./Dishes"
+  import viewInfo from "./Information"
+  import viewAdd from "./AddDish"
   export default {
     name: 'Operate',
     data(){
       return {
-        input: '',
-        radio: 2,
+        searchInfoFrom: {
+          input: '',
+          value: '',
+        },
+        rules: {
+          input: [
+            {required: false, type: 'number', message: '请输入数值', trigger: 'blur,change'}
+          ]
+        },
+        radio: 1,
         options: [{
           value: '1',
           label: '上架'
@@ -74,87 +48,46 @@
           value: '2',
           label: '下架'
         }],
-        value: '',
+
         dialogVisible: false,
         form: {
           name: '',
-          region: '',
           date1: '',
           date2: '',
           delivery: false,
           type: [],
-          resource: '',
-          desc: ''
         },
         close: false,   //动态标签开关
-        formLabelWidth: '120px',
+        formLabelWidth: '80px',
         activeName: '1',
         setMealIndex: '1',
-        setMealList: [],
-        tabIndex: 1,
-        packageFoods: [
+        setMealList: [
           {
-            id: 1,
-            minPeople: 2,
-            maxPeople:4,
-            packageFoods: [{
-              title: '红烧肉',
-              originprice: '25',
-              currentprice: '20',
-              picUrl: ''
-            }, {
-              title: '鱼香肉丝dd',
-              originprice: '30',
-              currentprice: '20',
-              picUrl: ''
-            }, {
-              title: '麻辣鸡丝ddd',
-              originprice: '25',
-              currentprice: '20',
-              picUrl: ''
-            }],
-            packagePrice: 250.00,
-            packageStatus: "上架"
-          }, {
-            id: 2,
-            minPeople: 4,
-            maxPeople:6,
-            packageFoods: [{
-              title: '红烧肥肠',
-              originprice: '25',
-              currentprice: '20',
-              picUrl: ''
-            }, {
-              title: '鱼香茄子',
-              originprice: '30',
-              currentprice: '20',
-              picUrl: ''
-            }, {
-              title: '麻婆豆腐',
-              originprice: '25',
-              currentprice: '20',
-              picUrl: ''
-            }],
-            packagePrice: 270.00,
-            packageStatus: "上架"
+            title: '组合1',
+            name: '1'
           }
-        ]
+        ],
+        tabIndex: 1,
+        packageFoods: [],
+        flag: false,
+        addForm: [],
+        dialogAdd: false,
+        addDishForm: false,
       }
     },
     methods: {
-      handelSearch(e){
-//        console.log(this);
-//        console.log(e)
+      handelSearch(data){
+        let renderData = data;
+        this.$emit('render', renderData)
       },
       handleClick(tab, event){
 //        console.log(tab, event);
       },
       addFoods(){
-        this.dialogVisible = true;
-//        console.log(this)
+        this.addDishForm = true;
       },
       addDish(){
-        let newTabName = ''+this.tabIndex++ ;
+        let newTabName = ++this.tabIndex + '';
         let activeName = newTabName;
         console.log(this.tabIndex)
         this.setMealList.push({
@@ -163,6 +96,7 @@
         });
         this.setMealIndex = newTabName;
         this.activeName = newTabName;
+        if (newTabName > 1) this.flag = true;
       },
       removeDish(targetName){
         let tabs = this.setMealList;
@@ -182,16 +116,24 @@
       }
     },
     components: {
-      viewDishes
+      viewDishes,
+      viewAdd
     }
   }
 </script>
 
 <style lang="scss">
-  #pa-item {
+  #pa-deskMain {
     margin-top: 30px;
-    padding-bottom: 100px;
-
+  .el-form{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin: 40px;
+    .el-form-item{
+      margin:0;
+    }
+  }
   .pa-itemId {
     width: 100%;
     background: #ceccc8;
@@ -224,7 +166,7 @@
   }
 
   }
-  }
+
   .form-group {
     margin: 0 20px;
     display: flex;
@@ -246,4 +188,10 @@
     margin: 0 10px;
   }
 
+  .search, .add {
+    margin-left:20px;
+    width:100px;
+    display: inline-block;
+  }
+  }
 </style>

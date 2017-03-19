@@ -1,5 +1,5 @@
 <template>
-	<div class="view-add">
+	<div class="cate-add">
 		<ui-dialog title="添加主类别" v-model="dialogAdd">
 			<ui-form>
 				<ui-form-item label="菜品主类别" :label-width="formLabelWidth">
@@ -21,9 +21,7 @@
 <script>
 	import xhr from 'service'
 	import { mealCate } from 'service/api'
-
-	const session = 'MTg0MDQ5ODU5MzY7NzU3MEZBN0QzNEQxRjkxOTU5QzRGRTc3OTE2MzIxRTQ7MQ';
-	const shopId = 13;
+	import { mapGetters } from 'vuex'
 
 	export default {
 
@@ -31,14 +29,14 @@
 			return {
 				//模态框
 				dialogAdd: true,
-				
+
 				//label宽度
 				formLabelWidth: '120px',
-				
+
 				//发送新增类别请求
 				reqAdd: {
-					session: session,
-					shopId: shopId,
+					session: '',
+					shopId: '',
 					platformCategoryId: null,
 					categoryTitle: '',
 					picUrl: 'aa.jpg',
@@ -49,22 +47,32 @@
 				}
 			};
 		},
-		
+
 		watch: {
 			//动态控制模态框显示隐藏
 			dialogAdd: function() {
-				this.$emit('addModalTrans');
+				this.$parent.isShowAdd = false;
 			}
+		},
+
+		computed: {
+			...mapGetters(['session', 'shopId'])
 		},
 
 		methods: {
 			//添加类别
 			add() {
+				this.reqAdd.session = this.session;
+				this.reqAdd.shopId = this.shopId;
+
 				xhr({
 					url: mealCate.addPerCate,
 					options: this.reqAdd
 				}).then((res) => {
-					alert('添加主类别成功');
+					this.$message({
+						message: '添加成功！',
+						type: 'success'
+					});
 					this.dialogAdd = false;
 				})
 			}

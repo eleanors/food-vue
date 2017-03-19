@@ -13,7 +13,7 @@
 											<ui-option v-for="(item, index) in options" :label="item.label" :value="item.value" :key="index"></ui-option>
 								</ui-select>
 				 </ui-input></ui-col>
-				 <ui-col :span="4"><ui-button type="primary" size="large" icon="search" v-on:click="search">查询</ui-button></ui-col>
+				 <ui-col :span="4"><ui-button class="btn-search" v-on:click="search">查询</ui-button></ui-col>
 		</ui-row>
 </div>
 </template>
@@ -44,6 +44,12 @@ export default {
 					}, {
 						value: '3',
 						label: '未受理'
+					}, {
+						value: '4',
+						label: '已付款'
+					}, {
+						value: '5',
+						label: '未付款'
 					}]
 			}
 		},

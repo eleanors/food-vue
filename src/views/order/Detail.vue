@@ -1,5 +1,20 @@
 <template>
 <div class="view-order-detail">
+
+        <div class="order-status">
+
+                    <div class="title">订单状态</div>
+                    <div class="status">{{status | orderStatusFilter}}</div>
+                    <div class="operate">
+                            <span class="btn" v-if="status==3" v-on:click="addFoodHandle">加菜</span>
+                            <span class="btn" v-if="status==2">开台</span>
+                            <span class="btn" v-if="status==3">结账</span>
+                            <span class="btn" v-if="status==4">打印</span>
+                            <span class="btn" v-if="status==4">退单</span>
+                            <span class="btn" v-if="status==1">受理</span>
+                            <span class="btn" v-if="status==1 || status==2">取消</span>
+                    </div>
+        </div>
         <!-- 订单详情 -->
         <div class="detail">
 
@@ -51,8 +66,8 @@
                 <div class="list">
                         <span class="title fs-16">桌号(包间)</span>
                         <div class="content">
-                            <span v-text="dinnernumber"></span>
-                            <ui-select class="dinner-number" v-model="dinnernumber" placeholder="请选择"  v-if="isShowTableNo">
+                            <span v-text="tableName"></span>
+                            <ui-select class="dinner-number" multiple v-model="dinnernumber" placeholder="请选择"  v-if="isShowTableNo">
                                     <ui-option v-for="(item, index) in dinnerNumOptions" :label="item.label" :value="item.value" :key="index"></ui-option>
                             </ui-select>
                         </div>
@@ -66,39 +81,74 @@
 
         <!-- 已选菜品 -->
         <div class="selected fs-16">
-
-                <div class="title fs-20">已点菜品</div>
+                <!-- 已选菜品列表 -->
                 <div class="list">
-                    <ui-row class="item" :gutter="0" v-for="(food, index) in selectedFoodFilter" :key="index">
-                          <ui-col :span="4" v-text="food.itemTitle"></ui-col>
-                          <ui-col :span="4" v-text="food.quantity"></ui-col>
-                          <ui-col :span="4" v-text="food.price"></ui-col>
-                          <ui-col :span="12" v-on:click.native="retreatFood(food)" v-if="status!==4">退菜</ui-col>
-                    </ui-row>
+                        <span class="title fs-16">已点菜品</span>
+                        <div class="sub-title">
+                                <span>名称</span>
+                                <span>单价</span>
+                                <span>数量</span>
+                                <span>小计</span>
+                        </div>
                 </div>
-                <div class="remark">
 
+                <div class="food-list">
+                       <p class="food-item" v-for="(food, index) in selectedFoodFilter" :key="index">
+                                <span v-text="food.itemTitle"></span>
+                                <span v-text="food.quantity"></span>
+                                <span v-text="food.price"></span>
+                                <span class="amount" v-text="food.price"></span>
+                       </p>
+                </div>
+
+                <!-- 菜品要求 -->
+                <div class="list">
+                        <span class="title fs-16">已点菜品</span>
+                        <div class="content" v-text="remark"></div>
+                </div>
+                <!--div class="remark">
                     <ui-row class="item" :gutter="0">
                           <ui-col :span="8">
-                                <span class="remark-title va-t">备注：</span>
+                                <span class="remark-title va-t">菜品要求</span>
                                 <p class="remark-content" v-text="remark" v-show="!isShowRemark"></p>
                                 <ui-input class="remark-content" type="textarea" :rows="4" placeholder="请输入内容" v-model="remark" v-if="isShowRemark"></ui-input>
                           </ui-col>
-                          <ui-col :span="16" class="edit fs-14" v-if="status!==4">
+                          <ui-col :span="16" class="edit fs-14" v-if="status!==4&&0">
                                 <span class="modify" v-show="!isShowRemark" v-on:click="modify('remark')">修改</span>
                                 <span class="save" v-if="isShowRemark" v-on:click="save('remark')">保存</span>
                                 <span class="cancel" v-if="isShowRemark" v-on:click="save('remark')">取消</span>
                           </ui-col>
                     </ui-row>
+                </div-->
+
+                <!-- 支付金额 -->
+                <div class="list">
+                        <span class="title fs-16">支付金额</span>
+                        <div class="sub-title pay-money">
+                                <span>菜品费</span>
+                                <span>桌台使用费</span>
+                                <span>优惠</span>
+                                <span>总额</span>
+                                <span>抹零</span>
+                                <span>退款</span>
+                                <span>支付</span>
+                        </div>
                 </div>
-                <div class="describe">支付金额：菜品：￥{{foodTotalMoney}} 包间使用费：￥{{roomsMoney}} 总额：￥{{totalMoney}}</div>
-                <div class="payment">支付方式：{{payment | paymentFilter(payment)}}</div>
+
+                <!-- 支付方式 -->
+                <div class="list">
+                        <span class="title fs-16">支付方式</span>
+                        <div class="content">{{payment | paymentFilter(payment)}}</div>
+                </div>
+
+                <!-- 退单原因 -->
+                <div class="list">
+                        <span class="title fs-16">退单原因</span>
+                        <div class="content">客户对服务不满意</div>
+                </div>
         </div>
 
-        <div class="add-order">
 
-                    <router-link class="btn add-food fs-16" v-bind:to="{ name: 'OrderAdd', params:{orderNo: orderId}}">加菜</router-link>
-        </div>
 
         <ui-dialog title="正在编辑" v-model="isDialogVisible" size="tiny" top="30%">
               <div class="modal-content">
@@ -119,6 +169,8 @@
 import xhr from 'service'
 import { order } from 'service/api'
 import viewCount from './part/Count'
+import {formatDate} from 'vendor/utils'
+import { mapGetters } from 'vuex'
 
 export default {
 
@@ -126,13 +178,13 @@ export default {
             return {
                 // 订单状态
                 status: '',
-                orderId: '',
+                orderNo: '',
 
                 createtime: '',
                 limittime: '',
                 dinnercount: '',
                 customertel: '',
-                dinnernumber:'',
+                dinnernumber:[],
                 remark: '',
                 payment: 1,
 
@@ -145,10 +197,10 @@ export default {
 
                 // 桌号选择
                 dinnerNumOptions: [{
-                      value: '001',
+                      value: '01',
                       label: 'AX001'
                 }, {
-                      value: '002',
+                      value: '02',
                       label: 'AX002'
                 }],
 
@@ -194,45 +246,76 @@ export default {
             totalMoney: function(){
                 //console.log(this.foodTotalMoney, this.roomsMoney)
                 return parseFloat(this.foodTotalMoney) + parseFloat(this.roomsMoney);
+            },
+
+            tableName: function(){
+                return this.dinnernumber.join(',')
+            },
+            ...mapGetters(['session', 'shopId'])
+        },
+
+        watch: {
+            "$route.path": function(){
+                    this.createView();
             }
         },
 
         created: function(){
 
-            let params = this.$route.params
-            this.orderId = params.id
-            this.status = params.status
-
-            xhr({
-                url: order.getOrderInfomation,
-                options: {
-                    orderNo: this.orderId
-                }
-            }).then(response => {
-            //console.log(response)
-                if(response.queryOrderInfomation){
-                    let data = response.queryOrderInfomation[0]
-
-                    let orderItemList = data.orderItemList
-
-                    let orderRoomDetail = data.orderRoomDetail
-
-                    this.createtime = data.createDate;
-                    this.limittime = orderRoomDetail.reserveDate;
-                    this.dinnercount = orderRoomDetail.metenNumber;
-                    this.customertel = orderRoomDetail.linkPhone;
-                    this.dinnernumber = orderRoomDetail.tableName;
-
-
-                    this.remark = data.remark;
-                    this.payment = data.payment;
-                    this.selectedFood = orderItemList;
-                    this.foodTotalMoney = data.preferentialMoneyAfter;
-                }
-            })
+            let params = this.$route.params;
+            let query = this.$route.query;
+            this.orderId = query.orderId;
+            this.orderNo = params.orderNo;
+            this.status = params.status;
+            this.createView();
+            this.tableRoomInfoList()
         },
 
         methods: {
+
+            createView: function(){
+
+                    this.orderNo && xhr({
+                            url: order.getOrderInfomation,
+                            options: {
+                                orderNo: this.orderNo,
+                                shopId: this.shopId,
+                                session: this.session
+                            }
+                    }).then(response => {
+
+                            if(response.queryOrderInfomation && response.queryOrderInfomation.length){
+                                let data = response.queryOrderInfomation[0]
+
+                                // 菜品列表
+                                let orderItemList = data.orderItemList
+                                // 详情
+                                let orderRoomDetail = data.orderRoomDetail
+
+                                //this.orderNo = orderRoomDetail.orderNo
+                                //this.status = orderRoomDetail.status
+                                //this.orderId = orderRoomDetail.id
+
+                                this.createtime = formatDate(data.createDate/1e3, 4);
+                                this.limittime = formatDate(orderRoomDetail.reserveDate/1e3, 4);
+                                this.dinnercount = orderRoomDetail.metenNumber;
+                                this.customertel = orderRoomDetail.linkPhone;
+                                this.tableJsonList = JSON.parse(orderRoomDetail.tableJsonList);
+
+
+                                if(this.tableJsonList.length){
+                                        this.tableJsonList.forEach(item=>{
+                                                this.dinnernumber.push(item.shopTableName)
+                                        })
+                                }
+
+                                this.remark = data.remark;
+                                this.payment = data.payment;
+                                this.selectedFood = orderItemList;
+                                this.foodTotalMoney = data.preferentialMoneyAfter;
+                            }
+                    })
+            },
 
             modify: function (type) {
 
@@ -315,21 +398,39 @@ export default {
                 //console.log(78787878, value)
             },
 
+            // 获取店铺桌号
+            tableRoomInfoList: function(){
+
+                    xhr({
+                        url: order.tableRoomInfoList,
+                        options: {
+                                shopId: this.shopId,
+                                session: this.session
+                        }
+                    }).then( response=>{
+                        console.log(response)
+                    })
+            },
+
             // 更新约定时间
             updateReserveDate: function(){
                 xhr({
                     url: order.updateReserveDate,
                     options: {
-                        orderId: this.orderId,
+                        orderNo: this.orderNo,
                         reserveDate: this.limittime,
-                        userId: ''
+                        userId: '',
+                        orderId: this.orderId,
+                        telPhone: '',
+                        shopId: this.shopId,
+                        session: this.session
                     }
                 }).then(response => {
 
-                        if(response.saveIndiegogoItem == '1'){
+                        if(response.ok){
 
-                                this.notify({
-                                      message: '更新成功...',
+                                this.message({
+                                      message: response.ok||'更新成功...',
                                       type: 'success'
                                 })
                                 this.isShowDate = false;
@@ -342,15 +443,19 @@ export default {
                 xhr({
                     url: order.updateMetenNumber,
                     options: {
-                        orderId: this.orderId,
+                        orderNo: this.orderNo,
                         metenNumber: this.dinnercount,
-                        userId: ''
+                        userId: '',
+                        orderId: this.orderId,
+                        telPhone: '',
+                        shopId: this.shopId,
+                        session: this.session
                     }
                 }).then(response => {
 
-                        if(response.saveIndiegogoItem == '1'){
+                        if(response.ok){
 
-                                this.notify({
+                                this.message({
                                       message: '更新成功...',
                                       type: 'success'
                                 })
@@ -361,18 +466,36 @@ export default {
 
             // 更新顾客手机
             updateLinkTelPhone: function(){
+                if(!this.customertel) {
+                        this.message({
+                              message: '不能为空',
+                              type: 'warning'
+                        })
+                        return false;
+                }else if(!(/^1[34578]\d{9}$/.test(this.customertel))) {
+                        this.message({
+                              message: '格式错误',
+                              type: 'warning'
+                        })
+                        return false;
+                }
                 xhr({
                     url: order.updateLinkTelPhone,
                     options: {
-                        orderId: this.orderId,
+                        orderid: this.orderid,
+                        orderNo: this.orderNo,
                         linkTelPhone: this.customertel,
-                        userId: ''
+                        userId: '',
+                        orderId: this.orderId,
+                        telPhone: '',
+                        shopId: this.shopId,
+                        session: this.session
                     }
                 }).then(response => {
 
-                        if(response.saveIndiegogoItem == '1'){
+                        if(response.ok){
 
-                                this.notify({
+                                this.message({
                                       message: '更新成功...',
                                       type: 'success'
                                 })
@@ -383,18 +506,33 @@ export default {
 
             // 更新桌号(包间)
             updateTableNo: function(){
+
+                let tableJsonList = []
+                this.dinnernumber.forEach( item=>{
+
+                        tableJsonList.push({
+                                shopTableId: 1,
+                                shopTableName: item,
+                                useMoney: 20.0,
+                                maxPerson: 10
+                        })
+                })
                 xhr({
                     url: order.updateTableNo,
                     options: {
+                        orderNo: this.orderNo,
+                        userId: '',
                         orderId: this.orderId,
-                        tableNo: this.nu,
-                        userId: ''
+                        tableNo: JSON.stringify(tableJsonList),
+                        telPhone: '',
+                        shopId: this.shopId,
+                        session: this.session
                     }
                 }).then(response => {
 
-                        if(response.saveIndiegogoItem == '1'){
+                        if(response.ok){
 
-                                this.notify({
+                                this.message({
                                       message: '更新成功...',
                                       type: 'success'
                                 })
@@ -408,15 +546,19 @@ export default {
                 xhr({
                     url: order.updateOrderRemark,
                     options: {
-                        orderId: this.orderId,
+                        orderNo: this.orderNo,
                         orderRemark: this.remark,
-                        userId: ''
+                        userId: '',
+                        orderId: this.orderId,
+                        telPhone: '',
+                        shopId: this.shopId,
+                        session: this.session
                     }
                 }).then(response => {
 
-                        if(response.saveIndiegogoItem == '1'){
+                        if(response.ok){
 
-                                this.notify({
+                                this.message({
                                       message: '更新成功...',
                                       type: 'success'
                                 })
@@ -430,19 +572,30 @@ export default {
                 this.isDialogVisible = true
             },
 
+            // 确认加菜
             ensureRetreatFood: function() {
                 xhr({
                     url: order.retreatFood,
                     options: {
-                        orderId: this.orderId,
+                        orderNo: this.orderNo,
                         orderType: '',
                         orderRemark: this.retreatFoodReason,
-                        quantity: this.retreatFoodNum
+                        quantity: this.retreatFoodNum,
+                        orderId: this.orderId,
+                        telPhone: '',
+                        shopId: this.shopId,
+                        session: this.session
                     }
                 }).then( response => {
 
                 })
                 this.isDialogVisible= false
+            },
+
+            addFoodHandle: function(){
+                this.$router.push({
+                    name: 'OrderAdd'
+                })
             }
         },
 
@@ -450,6 +603,39 @@ export default {
 
             paymentFilter: function(type){
                 return type=='3' ? '微信支付' : type == '4' ? '支付宝支付' : type == '5' ? '银联支付' : '现金支付'
+            },
+            /**
+             *   未受理   受理   取消
+             *   已受理   开台   取消
+             *   未付款   加菜   结账   打印
+             *   已付款   退单   打印
+             *   已退单
+             *   已取消
+             *   待开台
+             *   未开台
+            */
+
+            orderStatusFilter: function(status){
+                    let text = ''
+                    if(status == 1){
+                            text = '未受理'
+                    }else if(status == 2){
+                            text = '已受理'
+                    }else if(status == 3){
+                            text = '未付款'
+                    }else if(status == 4){
+                            text = '已付款'
+                    }else if(status == 5){
+                            text = '已退单'
+                    }else if(status == 6){
+                            text = '已取消'
+                    }else if(status == 7){
+                            text = '未开台'
+                    }else if(status == 8){
+                            text = '待开台'
+                    }
+
+                    return text;
             }
         },
 
@@ -487,6 +673,36 @@ export default {
             }
             .cancel {
                     background: $border-color;
+            }
+    }
+
+    .order-status {
+            box-sizing: border-box;
+            background: #ccc;
+            height: 60px;
+            line-height: 60px;
+
+
+            overflow: hidden;
+            & > div {
+                    float: left;
+            }
+            .title {
+                    width: 200px;
+                    text-indent: 50px;
+            }
+            .status {
+                    width: 20%;
+            }
+            .operate {
+                    float: right;
+                    padding-right: 10px;
+
+                    .btn {
+
+                        padding: 12px 36px;
+                        font-size: 16px;
+                    }
             }
     }
 
@@ -537,29 +753,64 @@ export default {
     .selected {
             margin-top: 20px;
             background: #fff;
-            & > div {
-                    padding-left: 30px;
-            }
-            .title {
+
+            .list {
                     height: 60px;
                     line-height: 60px;
-                    color: $c-master;
-                    border-bottom: 1px solid $border-color;
-            }
-            .list {
-                    margin-top: 10px;
-                    margin-bottom: 10px;
                     border-bottom: 1px solid $border-color;
                     position: relative;
-                    .item {
-                        height: 44px;
-                        line-height: 44px;
-                        & > div:last-child {
+                    overflow: hidden;
+
+                    .title {
+                            float: left;
+                            display: inline-block;
+                            width: 200px;
+                            text-indent: 50px;
                             color: $c-master;
-                            cursor: pointer;
-                        }
+                    }
+
+                    .sub-title{
+                            font-size: 0;
+                            white-space: nowrap;
+                            word-break: break-all;
+                            overflow: hidden;
+                            span {
+                                    display: inline-block;
+                                    height: 100%;
+                                    width: 20%;
+                                    font-size: 14px;
+                            }
+                    }
+
+                    .content {
+                            font-size: 14px;
+                    }
+
+                    .pay-money span{
+                            width: 10%;
                     }
             }
+
+            .food-list {
+                    .food-item{
+                            height: 44px;
+                            line-height: 44px;
+                            padding-left: 200px;
+                            font-size: 0;
+
+                            span{
+                                    display: inline-block;
+                                    width: 20%;
+                                    font-size: 14px;
+                            }
+
+                            .amount {
+                                    color: $c-master;
+                            }
+                    }
+            }
+
+
             .remark {
                     line-height: 50px;
                     resize: none;
@@ -584,21 +835,8 @@ export default {
             .describe {
                     line-height: 50px;
             }
-            .payment {
-                    line-height: 50px;
-
-            }
-
-            .add-order {
-                    margin-top: 20px;
-                    text-align: center;
-
-                    .add-food {
-                            padding: 12px 24px;
-                            color: #fff;
-                    }
-            }
     }
+
 
     .cancel-food-reason {
         width: 100%;

@@ -3,13 +3,13 @@
         <div class="food-menu" v-bind:class="{more: foodList&&foodList.length>5}" v-on:click.prevent.stop="" v-show="visible">
                 <p class="clear-food fs-18" v-show="foodCount!==0"><span v-on:click="clear">清空</span></p>
                 <transition-group class="food-list" name="slide-fade" tag="ul">
-                         <li class="food-item fs-18" v-for="(item, index) in foodList" v-bind:key="item">
+                         <li class="food-item fs-18" v-for="(item, index) in foodList" v-bind:key="index">
                                 <span class="food-title" v-text="item.title"></span>
-                                <span class="food-price" v-text="item.favorablePrice*item.quantity"></span>
+                                <span class="food-price" v-text="parseFloat(item.price*item.quantity).toFixed(2)"></span>
                                 <span class="food-amount">
-                                        <i class="reduce" v-on:click="decrease(item.categoryId, item)"></i>
+                                        <i class="reduce" v-on:click="decrease(item.categoryId, item.id, item)"></i>
                                         <input name="number" type="text" readonly v-model="item.quantity">
-                                        <i class="add" v-on:click="increase(item.categoryId, item)"></i>
+                                        <i class="add" v-on:click="increase(item.categoryId, item.id, item)"></i>
                                 </span>
                          </li>
                 </transition-group>
@@ -63,14 +63,14 @@ export default {
 
         methods: {
 
-                decrease: function(cateId, food){
+                decrease: function(cateId, foodId, food){
 
-                        this.reduceFood({shopId: this.shopId, cateId, food})
+                        this.reduceFood({shopId: this.shopId, cateId, foodId, food})
                 },
 
-                increase: function(cateId, food ){
+                increase: function(cateId, foodId, food){
 
-                        this.addFood({shopId: this.shopId, cateId, food})
+                        this.addFood({shopId: this.shopId, cateId, foodId, food})
                 },
 
                 clear: function(){
@@ -156,7 +156,7 @@ export default {
         li {
             height: 60px;
             line-height: 60px;
-            margin-right: 16px;
+            margin-right: 26px;
             position: relative;
             overflow: hidden;
 
@@ -179,8 +179,69 @@ export default {
                 text-align: center;
             }
 
-            .food-amount{
-                text-align: right;
+
+            .food-amount {
+                    text-align: right;
+                    font-size: 0;
+                    & > * {
+                            vertical-align: middle;
+                          }
+                    i{
+                            display: inline-block;
+                            width: 34px;
+                            height: 34px;
+                            line-height: 34px;
+                            text-align: center;
+                            color: #2eb165;
+                            border: 2px solid #2eb165;
+                            border-radius: 34px;
+                            cursor: pointer;
+                            position: relative;
+                    }
+                    .reduce::before{
+                            display: block;
+                            content: '';
+                            width: 14px;
+                            height: 2px;
+                            background: #2eb165;
+                            position: absolute;
+                            left: 8px;
+                            top: 14px;
+                    }
+                    .add {
+                            background: #2eb165;
+                            &::before{
+                                 display: block;
+                                 content: '';
+                                 width: 14px;
+                                 height: 2px;
+                                 background: #fff;
+                                 position: absolute;
+                                 left: 8px;
+                                 top: 14px;
+                            }
+                            &::after{
+                                 display: block;
+                                 content: '';
+                                 width: 2px;
+                                 height: 14px;
+                                 background: #fff;
+                                 position: absolute;
+                                 left: 14px;
+                                 top: 8px;
+                            }
+                    }
+                    input{
+                            width: 46px;
+                            height: 34px;
+                            border: 0;
+                            background: none;
+                            color: #656565;
+                            text-align: center;
+                            padding: 0px 8px;
+                            font-size: 14px;
+                            outline: none;
+                    }
             }
         }
     }

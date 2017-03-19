@@ -1,0 +1,194 @@
+@import './var.scss';
+
+/** router link actived */
+.is-active {
+    color: $menu-pannel-actived-color !important;
+}
+
+/* main container scroll*/
+.container {
+    overflow-y: auto;
+}
+
+/* pagination */
+.pagination {
+    margin: 30px auto;
+    text-align: center;
+    li.active {
+        border-color: $c-lesser!important;
+        background-color: $c-lesser!important;
+        &:hover {
+            color: #fff!important;
+        }
+    }
+    li:hover {
+        color: $c-lesser!important;
+    }
+    button:hover {
+        i {
+            color: $c-lesser;
+        }
+    }
+
+    button,
+    li {
+        width: 34px!important;
+        height: 34px!important;
+        line-height: 34px!important;
+    }
+    span {
+        height: 34px!important;
+        line-height: 34px!important;
+    }
+    input {
+        width: 34px!important;
+        padding: 7px 8px!important;
+    }
+
+}
+
+.btn{
+      display: inline-block;
+      padding: 12px 12px;
+      font-weight: normal;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      border-radius: 4px;
+      outline: none;
+      border: none;
+      color: #fff;
+      background: $c-master;
+      &:active {
+            background-image: none;
+            outline: 0;
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+      }
+}
+/* button */
+.btn-green {
+    padding: 11px 25px!important;
+    background: $c-master!important;
+    border-color: $c-master!important;
+    font-size: 16px!important;
+    color: #fff!important;
+    margin-top: -3px!important;
+    &:active {
+        background-image: none;
+        outline: 0;
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    }
+}
+
+.btn-orange {
+    padding: 11px 25px!important;
+    background: $c-lesser!important;
+    border-color: $c-lesser!important;
+    font-size: 16px!important;
+    color: #fff!important;
+    margin-top: -3px!important;
+    &:active {
+        background-image: none;
+        outline: 0;
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    }
+}
+
+.btn-gray {
+    padding: 11px 25px!important;
+    background: $c-gray!important;
+    border-color: $c-gray!important;
+    font-size: 16px!important;
+    color: #fff!important;
+    margin-top: -3px!important;
+    &:active {
+        background-image: none;
+        outline: 0;
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    }
+}
+
+.btn-search {
+    padding: 7px 25px!important;
+    background: $c-master!important;
+    border-color: $c-master!important;
+    font-size: 16px!important;
+    color: #fff!important;
+    margin-top: -3px!important;
+    &:active {
+        background-image: none;
+        outline: 0;
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    }
+}
+.btn-search:before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: url("~images/common/icon_search.png") no-repeat center top;
+    margin-right: 12px;
+    vertical-align: middle;
+}
+.btn-green:focus,
+.btn-green:hover,
+.btn-search:focus,
+.btn-search:hover {
+    border-color: $c-master;
+}
+.btn-orange:focus,
+.btn-orange:hover {
+    border-color: $c-lesser;
+}
+.btn-gray:focus,
+.btn-gray:hover {
+    border-color: $c-gray;
+}
+
+.btn-lg {
+    width: 200px;
+    padding: 13px 25px;
+}
+
+/* list edit and delete*/
+.cell {
+    text-align: center;
+}
+.operate-edit {
+    padding-left: 35px!important;
+    margin-right: 20px!important;
+    background: url("~images/common/operate-edit.png") no-repeat 0 0!important;
+    span {
+        color: $c-master;
+    }
+    &:hover span {
+        text-decoration: underline;
+    }
+}
+
+.operate-del {
+    padding-left: 35px!important;
+    background: url("~images/common/operate-del.png") no-repeat 0 0!important;
+    span {
+        color: $c-master;
+    }
+    &:hover span {
+        text-decoration: underline;
+    }
+}
+
+/* table */
+.el-table {
+
+    th {
+        font-size: 16px!important;
+        font-weight: normal!important;
+        background-color: $th-bg!important;
+        .cell {
+            background-color: $th-bg!important;
+        }
+    }
+
+}

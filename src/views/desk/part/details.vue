@@ -1,26 +1,26 @@
 <template>
   <section id="ds-item">
     <!--Table-->
-    <ui-table :data="tableData3" style="width: 100%" @selection-change="handleSelectionChange">
+    <ui-table :data="tableData" style="width: 100%" @selection-change="handleSelectionChange">
       <ui-table-column align="center" type="selection" width="55">全选</ui-table-column>
       <ui-table-column align="center" prop="pic" label="图片" width="120">
         <template scope="scope">
-          {{scope.row.pic}}
+          <img :src="scope.row.table_face_pic_url" alt="" class="ds-img">
         </template>
       </ui-table-column>
       <ui-table-column align="center" prop="name" label="编号/名称" width="120">
         <template scope="scope">
-          {{scope.row.name}}
+          {{scope.row.table_name}}
         </template>
       </ui-table-column>
       <ui-table-column align="center" prop="type" label="类型">
         <template scope="scope">
-          {{scope.row.type}}
+          {{scope.row.type_name}}
         </template>
       </ui-table-column>
       <ui-table-column align="center" prop="capacity" label="餐桌容量">
         <template scope="scope">
-          {{scope.row.capacity}}
+          {{scope.row.min_person}}-{{scope.row.max_person}}
         </template>
       </ui-table-column>
       <ui-table-column align="center" prop="use_money" label="预定费">
@@ -30,58 +30,66 @@
       </ui-table-column>
       <ui-table-column align="center" prop="qr_code_url" label="桌台二维码">
         <template scope="scope">
-          {{scope.row.qr_code_url}}
+          <div v-on:click="qr(scope.row)">
+            <img :src="'http://meia.oss-cn-beijing.aliyuncs.com/'+scope.row.two_dim_code_url" alt="" class="qr-img">
+          </div>
         </template>
       </ui-table-column>
       <ui-table-column align="center" label="操作">
         <template scope="scope">
-          <ui-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</ui-button>
-          <ui-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</ui-button>
+          <ui-button size="small" v-on:click="handleEdit(scope.$index, scope.row)">编辑</ui-button>
+          <ui-button size="small" type="danger" v-on:click="handleDelete(scope.row)">删除</ui-button>
         </template>
       </ui-table-column>
     </ui-table>
-    <!--Pagination-->
-    <div class="page-container">
-      <ui-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage4"
-                     :page-sizes="[100, 200, 300, 400]" :page-size="100"
-                     layout="total, sizes, prev, pager, next, jumper" :total="400">
-      </ui-pagination>
-    </div>
+    <!--删除确认弹窗-->
+
+    <ui-dialog title="提示" v-model="deletDialog" size="tiny">
+      <span>确定要删除此桌台信息</span>
+      <span slot="footer" class="dialog-footer">
+          <ui-button type="success" v-on:click="confirmDelete(data)">确 定</ui-button>
+          <ui-button v-on:click="deletDialog=!deletDialog">取 消</ui-button>
+      </span>
+    </ui-dialog>
     <!--edit-dialog-->
     <ui-dialog title="编辑桌台" v-model="editForm">
-      <ui-form :model="form">
-        <ui-form-item>
-          <ui-row class="ds-flex">
-            <ui-col :span="8" class="ds-form-item" style="transform: translateX(-4px);">
-              <label>编号/名称</label>
-              <ui-input class="ui-input"></ui-input>
-            </ui-col>
-            <ui-col :span="8" class="ds-form-item" style="transform: translateX(14px)">
-              <label>类型</label>
-              <ui-select v-model="index" clearable placeholder="请选择" v-on:change="roomChange">
+      <ui-form v-bind:rules="rules" :model="tableForm" ref="tableForm">
+        <ui-row class="ds-flex">
+          <ui-col :span="8" class="ds-form-item">
+            <ui-form-item label="编号/名称" v-bind:label-width="labelWidth" prop="table_name">
+              <ui-input class="ui-input" v-model:value="tableForm.table_name"></ui-input>
+            </ui-form-item>
+          </ui-col>
+          <ui-col :span="8" class="ds-form-item">
+            <ui-form-item label="类型" v-bind:label-width="labelWidth" prop="type">
+              <ui-select v-model="tableForm.type" clearable placeholder="请选择" v-on:change="roomChange">
                 <ui-option v-for="item in options" :label="item.label" :value="item.value" :key="item.value">
                 </ui-option>
               </ui-select>
-            </ui-col>
-          </ui-row>
-        </ui-form-item>
-        <ui-form-item>
-          <ui-row class="ds-row">
-            <ui-col :span="5" class="ds-form-item">
-              <label>餐厅容量</label>
-              <ui-input class="min-input"></ui-input>
-            </ui-col>
-            <ui-col :span="5" class="ds-form-item">
-              <label>至</label>
-              <ui-input class="min-input"></ui-input>
-            </ui-col>
-            <ui-col :span="8" class="ds-form-item">
-              <label>预定费</label>
-              <ui-input class="ui-input"></ui-input>
-              <label style="margin-left: 10px">元</label>
-            </ui-col>
-          </ui-row>
-        </ui-form-item>
+            </ui-form-item>
+          </ui-col>
+        </ui-row>
+        <ui-row class="ds-row">
+          <ui-col :span="5" class="ds-form-item">
+            <ui-form-item label="餐厅容量" v-bind:label-width="labelWidth" prop="min_person">
+              <ui-input class="min-input" type="min_person" v-model.number="tableForm.min_person"
+                        v-on:blur="pattern(tableForm.min_person)"></ui-input>
+            </ui-form-item>
+          </ui-col>
+          <ui-col :span="5" class="ds-form-item">
+            <ui-form-item label="至" label-width="42px" prop="max_person">
+              <ui-input class="min-input" type="max_person" v-model.number="tableForm.max_person"
+                        v-on:blur="pattern1(tableForm.max_person)"></ui-input>
+            </ui-form-item>
+          </ui-col>
+          <ui-col :span="8" class="ds-form-item">
+            <ui-form-item label="预定费" v-bind:label-width="labelWidth" prop="use_money">
+              <ui-input class="ui-input" type="use_money" v-model.number="tableForm.use_money"
+                        v-on:blur="pattern(tableForm.use_money)"></ui-input>
+            </ui-form-item>
+            <label style="margin-left: 10px">元</label>
+          </ui-col>
+        </ui-row>
         <ui-form-item>
           <span class="ds-tip fs-16">注：预定费不退给还给客户</span>
         </ui-form-item>
@@ -94,13 +102,14 @@
                     <label style="line-height:148px">包间图</label>
                   </ui-col>
                   <ui-col :span="12">
-                    <ui-upload action="https://test.meia8.com/api-customer/photo/upload" list-type="picture-card"
-                               :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
-                      <i class="el-icon-plus"></i>
+                    <ui-upload class="avatar-uploader"
+                      action="http://test.meia8.com/api-shop"
+                      :show-file-list="false"
+                      :on-success="handleAvatarScucess"
+                      :before-upload="beforeAvatarUpload">
+                      <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                      <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </ui-upload>
-                    <ui-dialog size="tiny">
-                      <img width="100%" :src="dialogImageUrl" alt="">
-                    </ui-dialog>
                   </ui-col>
                 </ui-row>
               </ui-col>
@@ -110,13 +119,14 @@
                     <label style="line-height:148px">二维码</label>
                   </ui-col>
                   <ui-col :span="12">
-                    <ui-upload action="https://test.meia8.com/api-customer/photo/upload" list-type="picture-card"
-                               :on-preview="handlePictureCardPreview" :on-remove="handleRemove">
-                      <i class="el-icon-plus"></i>
+                    <ui-upload class="avatar-uploader"
+                               action="http://test.meia8.com/api-shop"
+                               :show-file-list="false"
+                               :on-success="handleAvatarScucess"
+                               :before-upload="beforeAvatarUpload">
+                      <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                      <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </ui-upload>
-                    <ui-dialog size="tiny">
-                      <img width="100%" :src="dialogImageUrl" alt="">
-                    </ui-dialog>
                   </ui-col>
                 </ui-row>
               </ui-col>
@@ -124,35 +134,53 @@
           </transition>
         </ui-form-item>
         <ui-form-item class="ds-row">
-          <ui-button type="success" style="width:200px">确认</ui-button>
+          <ui-button type="success" style="width:200px" v-on:click="updateTable">确认</ui-button>
         </ui-form-item>
       </ui-form>
     </ui-dialog>
     <!--edit-end-->
+    <view-qr v-if="qrDisplay" v-bind:qrImgs="imgArr"></view-qr>
   </section>
 </template>
 
 <script>
+  import xhr from 'service'
+  import {deskManage} from 'service/api'
+  import viewQr from './Qrimg'
+  import {mapGetters} from 'vuex'
   export default {
+    props: {
+      tableData: {
+        type: Array,
+        default: () => []
+      }
+    },
     data() {
       return {
-        tableData3: [{
-          pic: '2016-05-03',
-          name: '王小虎',
-          type: '上海市普陀区金沙江路 1518 弄',
-          capacity: 3 - 6,
-          use_money: 100.00,
-          qr_code_url: 'hh',
-        }],
+        imageUrl: '',
+        tableForm: {},
+        rules: {
+          table_name: [
+            {required: true, message: '请输入桌台名称/编号', trigger: 'blur'},
+            {min: 2, max: 9, message: '长度在 2 到 9 个字符', trigger: 'blur'}
+          ],
+          min_person: [
+            {required: true, type: 'number', min: 1, max: 99, message: '取值范围1到99', trigger: 'blur,change'}
+          ],
+          max_person: [
+            {required: true, type: 'number', min: 1, max: 99, message: '取值范围1到99', trigger: 'blur,change'}
+          ],
+          use_money: [
+            {required: true, type: 'number', min: 1, max: 99, message: '必须为数值且取值范围1到99', trigger: 'blur,change'}
+          ],
+          type: [
+            {required: true, message: '必选一种类型', trigger: 'blur,change'}
+          ]
+        },
         multipleSelection: [],
-        currentPage1: 5,
-        currentPage2: 5,
-        currentPage3: 5,
-        currentPage4: 4,
         editForm: false,
         form: {},
         dialogImageUrl: '',
-        editForm: false,
         formLabelWidth: '100px',
         options: [{
           value: '1',
@@ -168,10 +196,12 @@
           label: '包间'
         }],
         index: '',
-        roomType: false
+        roomType: false,
+        labelWidth: "100px",
+        deletDialog: false,
+        qrDisplay: false
       }
     },
-
     methods: {
       handleSelectionChange(val) {
         this.multipleSelection = val;
@@ -185,10 +215,29 @@
       },
       handleEdit(index, row) {
         this.editForm = true;
-        console.log(index, row);
+        this.tableForm = row;
+        console.log(row)
       },
-      handleDelete(index, row) {
-        console.log(index, row);
+//      删除
+      handleDelete(row) {
+        console.log(row.id);
+        this.confirmDelete(row.id)
+      },
+//      确认删除
+      confirmDelete(data){
+        this.deletDialog = true;
+        xhr({
+          url: deskManage.deleteShopTable,
+          options: {
+            shopId: this.shopId,
+            session: this.session,
+            tableIdStr: data.id
+          }
+        }).then((data) => {
+          if (data.deleteShopTable == 1) {
+            this.message('桌台数据删除成功，请刷新');
+          }
+        })
       },
       handleRemove(file, fileList) {
         console.log(file, fileList);
@@ -198,7 +247,11 @@
         this.dialogVisible = true;
       },
       handleAvatarScucess(res, file) {
-        this.imageUrl = URL.createObjectURL(file.raw);
+          console.log(res)
+//        let reader = new FileReader();
+//        reader.readAsDataURL(file);
+//        console.log(reader)
+//        this.imageUrl = URL.createObjectURL(file.raw);
       },
       beforeAvatarUpload(file) {
         const isJPG = file.type === 'image/jpeg';
@@ -218,40 +271,76 @@
         } else {
           this.roomType = false;
         }
+      },
+//      编辑桌台成功后发送数据
+      updateTable(){
+        xhr({
+          url: deskManage.updateShopTable,
+          options: {
+            tableId: this.tableForm.id,
+            shopId: this.shopId,
+            session: this.session,
+            tableName: this.tableForm.table_name,
+            type: this.tableForm.type,
+            minPerson: this.tableForm.min_person,
+            maxPerson: this.tableForm.max_person,
+            useMoney: this.tableForm.use_money,
+            tableFacePicUrl: this.imageUrl
+          }
+        }).then((data) => {
+          console.log(data)
+          this.editForm = false;
+        })
+      },
+      qr(data){
+        console.log(this.qrDisplay)
+        this.qrDisplay = true;
+        this.imgArr = {};
+        this.imgArr = data;
+        console.log(this.imgArr)
       }
     },
-
-    components: {}
+    computed:{
+      ...mapGetters(['session','shopId'])
+    },
+    components: {
+      viewQr
+    }
   }
 </script>
 
 <style lang="scss">
+  .ds-img {
+    width: 100%;
+  }
+
   #ds-item {
     margin-top: 30px;
     padding-bottom: 100px;
+
+  .ds-tip {
+    float: right;
+    margin-right: 180px;
   }
 
-  .el-table--border td, .el-table--border th {
-    border: none;
-  }
-
-  .page-container {
-    text-align: center;
+  .dialog-footer {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
+  }
+
+  .el-dialog__body {
+    text-align: center;
+    font-size: 20px;
+  }
+
+  }
+
+  .ui-table--border td, .ui-table--border th {
+    border: none;
   }
 
   .ds-form-item {
     display: flex;
     align-items: center;
-
-  label {
-    white-space: nowrap;
-    margin-right: 25px;
-    text-align: center;
-  }
 
   .ui-input {
     width: 200px;
@@ -265,17 +354,6 @@
   .ds-flex {
     display: flex;
     justify-content: space-around;
-  }
-
-  .ds-row {
-    display: flex;
-    justify-content: center;
-  }
-
-  .ds-tip {
-    float: right;
-    margin-right: 180px;
-    color: #fbbb01;
   }
 
   /*过度*/
@@ -326,6 +404,32 @@
     100% {
       transform: scale(0);
     }
+  }
+
+  #ds-item {
+
+  .cell .ds-img {
+    width: 100%;
+  }
+
+  .qr-img {
+    height: 80px;
+    vertical-align: middle;
+  }
+  .avatar-uploader{
+    border: 1px dashed #d9d9d9;
+    width:148px;
+    height:148px;
+    img{
+      width:100%;
+      height:100%;
+    }
+  .avatar {
+    width: 148px;
+    height: 148px;
+    display: block;
+  }
+  }
   }
 
 </style>
