@@ -1,27 +1,7 @@
-# vue-food
-
-> A Vue.js project
-
-## Build Setup
-
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-
-# run e2e tests
-npm run e2e
-
-# run all tests
-npm test
-```
-
-For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+# 配置用户名
+git config --global user.name "username"
+# 配置邮箱
+git config --global user.email "username@email.com"
+# 生成 ssh，输完后连敲三个回车即可
+ssh-keygen -t rsa
+在 settings 页面的 SSH and GPG keys 栏中添加，Title 可以自定义，Key 的内容即为之前生成的 id_rsa.pub 文件内容（复制进来即可）
